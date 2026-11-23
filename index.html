@@ -7596,6 +7596,8 @@ const SFX = (() => {
               vol: { ...TRACKS[3].vol, bass: 0.08, lead: 0.03, pad: 0.03, mel: 0.1 },
               sec: { B: { melDbl: { type: 'flute', oct: 12, vol: 0.4 } }, C: { melW: 'epiano' } },
               dark: null,
+              baseParts: null, // the credits keep the pre-v318 song: none of night 7's new parts or electric piano
+              keys: null,
             };
       mus.idx = -2;
       mus.track = T;
