@@ -1,9 +1,15 @@
 <title>Keyfall</title>
-<meta name="description" content="A free browser typing game that picks words to be hard for your keyboard layout. Colemak, Colemak-DH, Qwerty and Dvorak." />
+<meta
+  name="description"
+  content="A free browser typing game that picks words to be hard for your keyboard layout. Colemak, Colemak-DH, Qwerty and Dvorak."
+/>
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Keyfall" />
 <meta property="og:title" content="Keyfall: a typing game that picks words to be hard for your layout" />
-<meta property="og:description" content="Type the falling words before they land. Free in the browser, for Colemak, Colemak-DH, Qwerty and Dvorak." />
+<meta
+  property="og:description"
+  content="Type the falling words before they land. Free in the browser, for Colemak, Colemak-DH, Qwerty and Dvorak."
+/>
 <meta property="og:url" content="https://keyfallgame.github.io/" />
 <meta property="og:image" content="https://keyfallgame.github.io/preview.png" />
 <meta property="og:image:width" content="1200" />
@@ -352,7 +358,8 @@ body.laststand #bar {
   border-radius: 5px;
   pointer-events: none;
   opacity: 0.55;
-  background-image: repeating-linear-gradient(0deg, #ffffff22 0 1px, transparent 1px 3px),
+  background-image:
+    repeating-linear-gradient(0deg, #ffffff22 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, #bfe6ff26 0 2px, transparent 2px 5px),
     linear-gradient(180deg, #bfe6ff1c, #bfe6ff08);
   animation: static 0.1s steps(2) infinite;
@@ -2876,6 +2883,25 @@ h2 {
 .lpcheck {
   min-height: 108px;
 }
+/* fingering grid (first-launch step 2 and Options): key letter, then three equal choice columns, presets on top */
+.fgrid {
+  display: grid;
+  grid-template-columns: 34px repeat(3, minmax(0, 132px));
+  gap: 10px 8px;
+  align-items: center;
+}
+.fgrid .btn {
+  box-sizing: border-box;
+  width: 100%;
+  align-items: center;
+  text-align: center;
+}
+.fkey {
+  font-family: var(--mono);
+  font-size: 20px;
+  text-align: center;
+  color: var(--paper);
+}
 </style>
 
 <div id="app">
@@ -2883,7 +2909,7 @@ h2 {
     <canvas id="cv"></canvas>
 
     <div class="sheet" id="laypick" hidden>
-      <div class="card lpcard">
+      <div class="card lpcard" id="lpStep1">
         <h2>Pick your layout</h2>
         <p class="lede">Every night in Keyfall is built around the layout you type on.</p>
         <div class="lpgrid" id="lpGrid"></div>
@@ -2892,7 +2918,20 @@ h2 {
           <div class="lpslots" id="lpSlots"></div>
           <div class="lpres" id="lpRes"></div>
         </div>
-        <div class="row"><button class="btn enter" id="lpGo" data-key="⏎ Enter">Start</button></div>
+        <div class="row"><button class="btn enter" id="lpGo" data-key="⏎ Enter">Next</button></div>
+        <p class="lpnote">You can change this anytime in Options.</p>
+      </div>
+      <div class="card lpcard" id="lpStep2" hidden>
+        <h2>How do you type these?</h2>
+        <p class="lede">
+          Typists don't agree on these keys. Pick the finger you really use, so the words picked to be awkward for your
+          hands really are.
+        </p>
+        <div class="fgrid" id="lpFgrid"></div>
+        <div class="row">
+          <button class="btn enter" id="lpGo2" data-key="⏎ Enter">Start</button
+          ><button class="btn ghost" id="lpBack" data-key="Esc">Back</button>
+        </div>
         <p class="lpnote">You can change this anytime in Options.</p>
       </div>
     </div>
@@ -2958,6 +2997,11 @@ h2 {
           <div class="lays" id="lays"></div>
           <div class="row"><button class="btn ghost sm tog" id="osLayBtn"></button></div>
           <p class="pdetail" id="layhint"></p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px" id="fingerBox">
+          <div class="label">Fingering</div>
+          <div class="fgrid" id="fgrid"></div>
+          <p class="pdetail" id="fhint"></p>
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px">
           <div class="label">Audio</div>
@@ -3284,6 +3328,43 @@ ROWS.forEach((row, ri) =>
     FINGER_NAME[c] = FINGER_NAMES[f];
   })
 );
+// player's own fingering (asked after the first-launch layout pick, also in Options): the finger for the contested left bottom-row keys,
+// stored by physical key so it carries across layouts. Night 10 (same finger) and night 11 (one-hand runs) follow it; night 9 doesn't.
+// 'either' (finger 8) on the B key means the player picks whichever index alternates: never a same-finger pair, breaks one-hand runs
+const FLEX = 8;
+const FING_SLOTS = [
+  [0, [0, 1]], // Z key: pinky or ring
+  [1, [1, 2]], // X key: ring or middle
+  [2, [2, 3]], // C key: middle or index
+  [4, [3, 4, FLEX]], // B key: left index, right index or either
+];
+const fingDefault = lay => {
+  const bf = LAYOUTS[lay].botFingers; // Colemak-DH already assumes angle mod
+  return FING_SLOTS.map(([ci, ok]) => (bf && ci < bf.length ? bf[ci] : ok[0]));
+};
+const fingLetter = (lay, ci) => {
+  const c = LAYOUTS[lay].rows[2][ci];
+  return c && isLetter(c) ? c : null;
+};
+const fingValid = v =>
+  Array.isArray(v) && v.length === FING_SLOTS.length && FING_SLOTS.every(([, ok], i) => ok.includes(v[i]));
+const FING_SAVED = (() => {
+  try {
+    let v = JSON.parse(localStorage.getItem('keyfall.fingers'));
+    if (v && !Array.isArray(v)) v = [v.z ?? 0, v.x ?? 1, v.c ?? 2, v.b ?? 3]; // v324 saved it by Colemak/Qwerty letter
+    return fingValid(v) ? v : null;
+  } catch (e) {
+    return null;
+  }
+})();
+const FINGERING = FING_SAVED || fingDefault(LAYOUT_ID);
+const BASE_FINGER = { ...FINGER }; // the layout's textbook fingering (night 9 traps and bottom-row weights use it)
+FING_SLOTS.forEach(([ci], i) => {
+  const c = fingLetter(LAYOUT_ID, ci);
+  if (!c) return;
+  FINGER[c] = FINGERING[i];
+  FINGER_NAME[c] = FINGERING[i] === FLEX ? 'Either index' : FINGER_NAMES[FINGERING[i]];
+});
 const isBump = (ri, ci) => ri === 1 && (ci === 3 || ci === 6); // homing bumps sit on the index home keys
 const NUMW = { 3: 'Three', 4: 'Four', 8: 'eight', 10: 'ten', 20: 'Twenty', 21: 'Twenty-one' };
 const KEYS_AT4 = NEW_KEYS.slice(0, 4).join('').length;
@@ -3529,7 +3610,8 @@ const GLYPH = {
 };
 // ---------- word pools ----------
 const RANK = new Map(WORDS.map((w, i) => [w, i]));
-const hand = c => (FINGER[c] < 4 ? 0 : 1);
+const hand = c => (FINGER[c] === FLEX ? 2 : FINGER[c] < 4 ? 0 : 1); // 2: either hand (B key on 'either'), never part of a one-hand run
+const baseHand = c => (BASE_FINGER[c] < 4 ? 0 : 1); // textbook fingering, for night 9
 const pairs = (w, f) => {
   let n = 0;
   for (let i = 1; i < w.length; i++) if (f(w[i - 1], w[i])) n++;
@@ -3553,7 +3635,7 @@ function maxHandRun(w) {
   let r = 1,
     m = 1;
   for (let i = 1; i < w.length; i++) {
-    r = hand(w[i]) === hand(w[i - 1]) ? r + 1 : 1;
+    r = hand(w[i]) === hand(w[i - 1]) && hand(w[i]) !== 2 ? r + 1 : 1;
     if (r > m) m = r;
   }
   return m;
@@ -3562,11 +3644,11 @@ const rowJump = w => {
   for (let i = 1; i < w.length; i++) {
     const a = w[i - 1],
       c = w[i];
-    if (hand(a) === hand(c) && Math.abs(ROW[a] - ROW[c]) === 2) return true;
+    if (baseHand(a) === baseHand(c) && Math.abs(ROW[a] - ROW[c]) === 2) return true;
   }
   return false;
 };
-const botFar = c => ROW[c] === 2 && FINGER[c] !== 3 && FINGER[c] !== 4; // bottom row, not an index finger
+const botFar = c => ROW[c] === 2 && BASE_FINGER[c] !== 3 && BASE_FINGER[c] !== 4; // bottom row, not an index finger
 const bottomWeight = pool => [...pool, ...pool.filter(w => count(w, botFar) >= 2 || count(w, c => ROW[c] === 2) >= 3)]; // words packed with awkward bottom-row letters show up twice as often
 const sfbCount = w => pairs(w, (a, b) => a !== b && FINGER[a] === FINGER[b]);
 const GIMMICKS = {
@@ -12705,6 +12787,7 @@ function renderMenu() {
   $('layhint').textContent = OSLAY
     ? `Keys come from your OS. Levels are built for ${LAYOUT.name}, so on other layouts they won't line up.`
     : `Your OS layout does not matter: Keyfall reads physical keys and maps them to ${LAYOUT.name}${LAYOUT.note ? ` (${LAYOUT.note})` : ''}. Progress and records are kept per layout.`;
+  renderFingering();
   $('chars').innerHTML = Object.entries(CHARS)
     .map(([k, c]) => {
       // glyph keycaps; the picked one is described beside them
@@ -12860,7 +12943,7 @@ $('cfile').addEventListener('click', e => {
   if (e.target.id === 'cfile') closeFile(); // a click outside the card closes it
 });
 // ---------- first launch: layout pick with a home row check ----------
-const LP = { k: LAYOUT_ID, codes: [], keys: [], mode: null, bad: false, other: false };
+const LP = { k: LAYOUT_ID, codes: [], keys: [], mode: null, bad: false, other: false, step: 1 }; // step 2: fingering
 const lpTarget = () => LAYOUTS[LP.k].rows[1].slice(0, 4);
 function lpMapped(code) {
   for (let ri = 0; ri < 3; ri++) {
@@ -12871,6 +12954,12 @@ function lpMapped(code) {
   return null;
 }
 function renderLayPick() {
+  $('lpStep1').hidden = LP.step !== 1;
+  $('lpStep2').hidden = LP.step !== 2;
+  if (LP.step === 2) {
+    $('lpFgrid').innerHTML = fingGrid(LP.k, fingGet(LP.k));
+    return;
+  }
   $('lpGrid').innerHTML =
     Object.entries(LAYOUTS)
       .map(
@@ -12928,11 +13017,18 @@ function lpKey(code, key) {
   renderLayPick();
 }
 function lpStart() {
+  if (LP.step === 1 && !LP.other) {
+    // next: how they finger the contested keys on this layout (Other skips it; Options still has it)
+    LP.step = 2;
+    renderLayPick();
+    return;
+  }
   if (LP.other) LP.k = 'colemak';
+  else store.set('fingers', fingGet(LP.k));
   OSLAY = LP.other || LP.mode === 'os';
   store.set('oslayout', OSLAY);
   store.set('laySeen', true);
-  if (LP.k !== LAYOUT_ID) {
+  if (LP.k !== LAYOUT_ID || fingDirty()) {
     store.set('layout', LP.k);
     location.reload();
     return;
@@ -12940,6 +13036,16 @@ function lpStart() {
   renderMenu();
   setMode('menu');
 }
+function lpBack() {
+  LP.step = 1;
+  lpReset();
+  renderLayPick();
+}
+$('lpFgrid').addEventListener('click', e => {
+  if (fingClick(e, LP.k)) renderLayPick();
+});
+$('lpGo2').onclick = lpStart;
+$('lpBack').onclick = lpBack;
 $('lpGrid').addEventListener('click', e => {
   const b = e.target.closest('[data-lay]');
   if (!b) return;
@@ -12958,6 +13064,58 @@ $('lays').addEventListener('click', e => {
   } catch (e) {}
   location.reload();
 });
+// Fingering: the finger the player really uses on the contested left bottom-row keys. Pools are built at load, so a change reloads.
+const FING_LABEL = { 0: 'Pinky', 1: 'Ring', 2: 'Middle', 3: 'Left index', 4: 'Right index', [FLEX]: 'Either' };
+const FING_PRESET = {
+  Standard: [0, 1, 2, 3], // B included
+  'Angle mod': [1, 2, 3, 3],
+};
+const FING_LOADED = JSON.stringify(FINGERING);
+const fingGet = lay => {
+  const v = store.get('fingers', null);
+  return fingValid(v) ? v : FING_SAVED || fingDefault(lay); // saved choice, else the layout's default
+};
+// one grid: a column of key letters, then up to three equal choice columns; the presets sit on top in the same columns
+function fingGrid(lay, f) {
+  const pre = Object.entries(FING_PRESET)
+    .map(
+      ([n, p]) =>
+        `<button class="btn ghost sm tog" data-fp="${n}" aria-pressed="${p.every((v, i) => f[i] === v)}">${n}</button>`
+    )
+    .join('');
+  const rows = FING_SLOTS.map(([ci, ok], i) => {
+    const c = fingLetter(lay, ci);
+    if (!c) return '';
+    const lab = v => (v === 3 && ci !== 4 ? 'Index' : FING_LABEL[v]);
+    return `<span class="fkey">${c}</span>${ok
+      .map(
+        v =>
+          `<button class="btn ghost sm tog" data-fs="${i}" data-fv="${v}" aria-pressed="${f[i] === v}">${lab(v)}</button>`
+      )
+      .join('')}${ok.length < 3 ? '<span></span>' : ''}`;
+  }).join('');
+  return `<span></span>${pre}<span></span>${rows}`;
+}
+function fingClick(e, lay) {
+  const b = e.target.closest('button');
+  if (!b) return false;
+  const f = [...fingGet(lay)];
+  if (b.dataset.fp) FING_PRESET[b.dataset.fp].forEach((v, i) => (f[i] = v));
+  else f[+b.dataset.fs] = +b.dataset.fv;
+  store.set('fingers', f);
+  return true;
+}
+const FING_HINT = 'The finger you really use for each key. Words picked to be awkward for your hands follow it.';
+function renderFingering() {
+  const f = fingGet(LAYOUT_ID);
+  $('fgrid').innerHTML = fingGrid(LAYOUT_ID, f);
+  $('fhint').textContent =
+    FING_HINT + (JSON.stringify(f) !== FING_LOADED ? ' Changes take effect when you close Options.' : '');
+}
+$('fgrid').addEventListener('click', e => {
+  if (fingClick(e, LAYOUT_ID)) renderFingering();
+});
+const fingDirty = () => JSON.stringify(fingGet(LAYOUT_ID)) !== FING_LOADED;
 $('osLayBtn').onclick = () => {
   OSLAY = !OSLAY;
   store.set('oslayout', OSLAY);
@@ -13265,6 +13423,7 @@ $('devlaypick').onclick = () => {
   // preview the first-launch layout pick; nothing is reset
   LP.k = LAYOUT_ID;
   LP.other = false;
+  LP.step = 1;
   lpReset();
   renderLayPick();
   setMode('laypick');
@@ -13422,6 +13581,10 @@ function setMode(m) {
     }
   } // no bottom bar on the menus
   const prev = G.mode;
+  if (prev === 'options' && m !== 'options' && fingDirty()) {
+    location.reload(); // word pools follow the new fingering
+    return;
+  }
   G.mode = m;
   if (m !== 'play') {
     SFX.virusMusic({});
@@ -13498,6 +13661,11 @@ function onKey(e) {
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
       e.preventDefault();
       lpStart();
+    } else if (LP.step === 2) {
+      if (e.code === 'Escape') {
+        e.preventDefault();
+        lpBack();
+      }
     } else if (e.code === 'Backspace' || e.code === 'CapsLock') {
       e.preventDefault();
       lpReset();
@@ -13652,7 +13820,8 @@ function frame(now) {
 }
 document.fonts && document.fonts.ready.then(resize);
 if (PUBLIC) {
-  for (const id of ['devnodmg', 'devspeed', 'devcred8', 'devcred12', 'devlaypick', 'devmidiRow', 'devmidiInfo']) $(id).remove();
+  for (const id of ['devnodmg', 'devspeed', 'devcred8', 'devcred12', 'devlaypick', 'devmidiRow', 'devmidiInfo'])
+    $(id).remove();
   /* the public build keeps Reset saved progress (press twice) */ $('testLabel').textContent = 'Shortcuts';
 }
 resize();
