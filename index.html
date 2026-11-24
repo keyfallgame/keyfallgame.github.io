@@ -3024,6 +3024,11 @@ h2 {
   text-align: center;
   white-space: nowrap;
 }
+/* v338: Quit run between nights keeps one width when it asks for the second press */
+#clQuit,
+#preQuit {
+  min-width: 210px;
+}
 </style>
 
 <div id="app">
@@ -3244,6 +3249,7 @@ h2 {
         <div class="row">
           <button class="btn enter" id="preGo" data-key="⏎ Enter">Begin</button
           ><button class="btn ghost" id="preMenu" data-key="Esc">Main menu</button
+          ><button class="btn ghost" id="preQuit" data-key="Esc" hidden>Quit run</button
           ><span class="hint" id="preHint"><kbd>Enter</kbd> to begin</span>
         </div>
       </div>
@@ -3260,6 +3266,7 @@ h2 {
         <div class="row">
           <button class="btn enter" id="clGo" data-key="⏎ Enter">Next level</button
           ><button class="btn ghost" id="clMenu" data-key="Esc">Main menu</button
+          ><button class="btn ghost" id="clQuit" data-key="Esc" hidden>Quit run</button
           ><span class="hint" id="clHint"><kbd>Enter</kbd> next · <kbd>Esc</kbd> menu</span>
         </div>
       </div>
@@ -8763,7 +8770,9 @@ function startFn(id, d) {
 function showPre() {
   const L = G.lvl.cfg;
   setMode('pre');
-  $('preMenu').hidden = !L.fn && G.run.levelsCleared > 0; // mid-run intros have no way out; quitting goes through the pause menu
+  $('preMenu').hidden = !L.fn && G.run.levelsCleared > 0; // mid-run intros: no Main menu, only Quit run, which takes two presses
+  $('preQuit').hidden = !$('preMenu').hidden;
+  quitDisarm();
   if (L.fn) {
     $('preLabel').textContent = `Fn Keys · like level ${L.n}`;
     $('preTitle').textContent = L.fn.name;
@@ -8961,6 +8970,7 @@ function fnCleared() {
   $('clStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
   $('clGo').textContent = 'Back to Fn Keys';
   $('clMenu').hidden = true;
+  $('clQuit').hidden = true;
   $('clHint').textContent = '';
   $('clMetrics').hidden = false;
   $('clMetrics').innerHTML = metricsHTML(r);
@@ -9089,6 +9099,7 @@ function practiceCleared() {
     .join('');
   $('clGo').textContent = 'Main menu';
   $('clMenu').hidden = true;
+  $('clQuit').hidden = true;
   $('clHint').textContent = '';
   $('clMetrics').hidden = true;
 }
@@ -9197,7 +9208,9 @@ function levelCleared() {
   if (endUp) rows.push(['Unlocked', 'Endless']);
   $('clStats').innerHTML = rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
   $('clGo').textContent = L.n === 12 ? 'Main menu' : L.n === 8 && hid9 ? 'Continue' : `Night ${L.n + 1}`; // don't spoil night 9 on the level 8 clear
-  $('clMenu').hidden = true; // no quitting from a story clear: leaving means the pause menu or the next night's intro
+  $('clMenu').hidden = true; // no Main menu on a story clear: Quit run takes two presses, so a run doesn't end by accident
+  $('clQuit').hidden = L.n === 12;
+  quitDisarm();
   $('clHint').textContent = '';
   $('clMetrics').hidden = L.n !== 12;
   if (L.n === 12) $('clMetrics').innerHTML = metricsHTML(r);
@@ -12420,19 +12433,20 @@ function drawCountdown() {
   }
   if (L.mini && left > 0) return; // boss levels 4 and 8 show the health bar instead of the big number
   const k = Math.min(1, (G.t - G.lvl.cdT) / 0.25),
-    pop = reduced ? 1 : 1.15 - 0.15 * k;
+    pop = reduced ? 1 : 1.08 - 0.08 * k;
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = LCOL[L.n - 1];
   if (left > 0) {
-    ctx.globalAlpha = last ? 0.1 : 0.22;
+    // v338 (player feedback): half the old size and fainter, so it stays behind the words instead of shouting
+    ctx.globalAlpha = last ? 0.08 : 0.15;
     if (last) ctx.fillStyle = '#ebe6d6';
-    ctx.font = `800 ${Math.round(H * 0.42 * pop)}px 'Archivo',system-ui,sans-serif`;
+    ctx.font = `800 ${Math.round(H * 0.2 * pop)}px 'Archivo',system-ui,sans-serif`;
     ctx.fillText(String(left), W / 2, H * 0.45);
-    ctx.globalAlpha = last ? 0.15 : 0.45;
-    ctx.font = `600 ${Math.round(Math.max(14, H * 0.03))}px 'IBM Plex Mono',monospace`;
-    if (!last) ctx.fillText(left === 1 ? 'word to go' : 'words to go', W / 2, H * 0.45 + H * 0.25);
+    ctx.globalAlpha = last ? 0.12 : 0.32;
+    ctx.font = `600 ${Math.round(Math.max(13, H * 0.022))}px 'IBM Plex Mono',monospace`;
+    if (!last) ctx.fillText(left === 1 ? 'word to go' : 'words to go', W / 2, H * 0.45 + H * 0.13);
   } else {
     ctx.globalAlpha = 0.35 + 0.1 * Math.sin(G.t * 5);
     ctx.font = `800 ${Math.round(Math.min(W * 0.09, H * 0.14) * pop)}px 'Archivo',system-ui,sans-serif`;
@@ -13612,6 +13626,26 @@ $('fnChars').addEventListener('click', e => {
 $('preGo').onclick = () => fadeTo(beginFromPre, 0.25, 0, 0.45);
 $('preMenu').onclick = leaveRun;
 $('clMenu').onclick = leaveRun;
+// Quit run between nights: the first press (or Esc) arms it, a second within 3 s ends the run
+let quitArmed = 0;
+function quitDisarm() {
+  quitArmed = 0;
+  for (const id of ['preQuit', 'clQuit']) $(id).textContent = 'Quit run';
+}
+function quitPress(b) {
+  if (Date.now() - quitArmed > 3000) {
+    quitArmed = Date.now();
+    b.textContent = 'Press again to quit';
+    setTimeout(() => {
+      if (quitArmed && Date.now() - quitArmed >= 3000) quitDisarm();
+    }, 3050);
+    return;
+  }
+  quitDisarm();
+  leaveRun();
+}
+$('preQuit').onclick = () => quitPress($('preQuit'));
+$('clQuit').onclick = () => quitPress($('clQuit'));
 function leaveRun() {
   if (G.run) {
     if (!NODMG && !G.run.fn && !G.run.practice) save.best = Math.max(save.best, Math.round(G.run.score));
@@ -13941,7 +13975,44 @@ addEventListener('keyup', e => {
 });
 addEventListener('keydown', e => {
   if (e.code === 'CapsLock') capsHeld = true;
-  onKey(e);
+  const fix = (!e.code || e.code === 'Unidentified') && INJ_CODE[e.key];
+  if (fix)
+    onKey({
+      code: fix,
+      key: e.key,
+      repeat: e.repeat,
+      ctrlKey: e.ctrlKey,
+      metaKey: e.metaKey,
+      altKey: e.altKey,
+      target: e.target,
+      preventDefault: () => e.preventDefault(),
+    });
+  else onKey(e);
+});
+const INJ_CODE = { ' ': 'Space', Enter: 'Enter', Escape: 'Escape', Backspace: 'Backspace' }; // injected keys with no code
+// Some remappers inject characters whose keydown carries no usable key ('Unidentified', 'Process'). Their letter still
+// arrives as a keypress. A keydown Keyfall handled is prevented, so it never makes a keypress: this only sees the leftovers.
+addEventListener('keypress', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || !/^[a-z ]$/i.test(e.key || '')) return;
+  const m = G.mode;
+  if (e.key === ' ') {
+    if ((m === 'play' || m === 'drill') && !G.paused && !G.dying && !e.repeat) {
+      e.preventDefault();
+      submit();
+    }
+  } else if (m === 'laypick' && LP.step !== 2 && !e.repeat) {
+    e.preventDefault();
+    lpKey('', e.key.toLowerCase());
+  } else if (
+    (m === 'play' || m === 'drill') &&
+    !G.paused &&
+    !G.dying &&
+    !(G.frozen && m === 'play') &&
+    !(m === 'play' && G.t < G.run.stunUntil)
+  ) {
+    e.preventDefault();
+    typeLetter(e.key.toLowerCase());
+  }
 });
 function onKey(e) {
   if ((e.ctrlKey || e.metaKey || e.altKey) && e.code !== 'Backspace') return; // modified Backspace erases the whole word
@@ -13976,7 +14047,7 @@ function onKey(e) {
       e.preventDefault();
       lpReset();
       renderLayPick();
-    } else if (!e.repeat && /^[a-z]$/i.test(e.key || '') && /^Key[A-Z]$|^Semicolon$/.test(e.code)) {
+    } else if (!e.repeat && /^[a-z]$/i.test(e.key || '') && (/^Key[A-Z]$|^Semicolon$/.test(e.code) || injected(e))) {
       e.preventDefault();
       lpKey(e.code, e.key.toLowerCase());
     }
@@ -14030,6 +14101,9 @@ function onKey(e) {
     } else if (e.code === 'Escape' && !$('preMenu').hidden) {
       e.preventDefault();
       leaveRun();
+    } else if (e.code === 'Escape' && !$('preQuit').hidden && !e.repeat) {
+      e.preventDefault();
+      quitPress($('preQuit'));
     }
     return;
   }
@@ -14040,6 +14114,9 @@ function onKey(e) {
     } else if (e.code === 'Escape' && !$('clMenu').hidden) {
       e.preventDefault();
       leaveRun();
+    } else if (e.code === 'Escape' && !$('clQuit').hidden && !e.repeat) {
+      e.preventDefault();
+      quitPress($('clQuit'));
     }
     return;
   }
@@ -14093,13 +14170,19 @@ function onKey(e) {
     G.input = G.input.slice(0, G.input.length - n);
     return;
   }
-  const c = OSLAY
-    ? !e.ctrlKey && !e.metaKey && !e.altKey && /^[a-z]$/i.test(e.key || '')
-      ? e.key.toLowerCase()
-      : null
-    : CODE[e.code];
+  const letter = /^[a-z]$/i.test(e.key || '') ? e.key.toLowerCase() : null;
+  // a key with no physical code was injected by a remapper (EPKL, AutoHotkey): its letter is already the one meant
+  const c = OSLAY || injected(e) ? letter : CODE[e.code];
   if (c) {
     e.preventDefault();
+    typeLetter(c);
+  }
+}
+const injected = e => !e.code || e.code === 'Unidentified';
+function typeLetter(c) {
+  const m = G.mode;
+  if (m !== 'play' && m !== 'drill') return;
+  {
     if (m === 'play' && G.run.m.wordStart == null) G.run.m.wordStart = G.t;
     if (G.input.length < 32) {
       G.input += c;
