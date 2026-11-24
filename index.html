@@ -4092,9 +4092,27 @@ const rowJump = w => {
 const botFar = c => ROW[c] === 2 && BASE_FINGER[c] !== 3 && BASE_FINGER[c] !== 4; // bottom row, not an index finger
 const bottomWeight = pool => [...pool, ...pool.filter(w => count(w, botFar) >= 2 || count(w, c => ROW[c] === 2) >= 3)]; // words packed with awkward bottom-row letters show up twice as often
 const sfbCount = w => pairs(w, (a, b) => a !== b && FINGER[a] === FINGER[b]);
+// night 9's stretch keys: index-finger keys outside the index's own column, by the layout's textbook fingering.
+// Usually the two middle columns; with the angle mod (Colemak-DH ANSI/ISO) the left index's own bottom key moves one left,
+// so the key it used to own (v on DH) becomes a stretch too (v345).
+const STRETCH = (() => {
+  const s = new Set();
+  for (const row of ROWS) {
+    const ls = [...row].filter(c => isLetter(c) && BASE_FINGER[c] === 3).map(c => COL[c]),
+      rs = [...row].filter(c => isLetter(c) && BASE_FINGER[c] === 4).map(c => COL[c]);
+    for (const c of row)
+      if (
+        isLetter(c) &&
+        ((BASE_FINGER[c] === 3 && COL[c] > Math.min(...ls)) || (BASE_FINGER[c] === 4 && COL[c] < Math.max(...rs)))
+      )
+        s.add(c);
+  }
+  return s;
+})();
+const isStretch = c => STRETCH.has(c);
 const GIMMICKS = {
   // levels 9-11 per layout, each aimed at a weak spot
-  center3: w => count(w, c => COL[c] === 4 || COL[c] === 5) >= 3, // middle-column stretch
+  center3: w => count(w, isStretch) >= 3, // middle-column stretch
   sfb: w => sfbCount(w) >= 1,
   sfb2: w => sfbCount(w) >= 2,
   run5: w => maxHandRun(w) >= 5,
@@ -9473,7 +9491,7 @@ function crWord(w) {
   if (n >= 9 && n <= 11) {
     const k = LAYOUT.gim[n - 9];
     if (k === 'center3') {
-      const m = count(w, c => COL[c] === 4 || COL[c] === 5);
+      const m = count(w, isStretch);
       v.metric += m;
       better(m * 100 + w.length, w);
     }
@@ -10800,7 +10818,7 @@ const FINAL_POOL = [
 function breathTrap(w) {
   const g = LAYOUT.gim;
   let t = 0;
-  if (g[0] === 'center3') t += 0.4 * [...w].filter(c => COL[c] === 4 || COL[c] === 5).length;
+  if (g[0] === 'center3') t += 0.4 * [...w].filter(isStretch).length;
   else if (g[0] === 'nohome') t += 0.4 * [...w].filter(c => ROW[c] !== 1).length;
   else if (g[0] === 'bottom2') t += 0.4 * [...w].filter(c => ROW[c] === 2).length;
   for (let i = 1; i < w.length; i++) {
@@ -14283,10 +14301,10 @@ const ENDS = ['tion', 'sion', 'ment', 'ness', 'ally', 'able', 'less', 'ing', 'fu
 const endOf = w => ENDS.find(e => w.length >= e.length + 3 && w.endsWith(e)) || '';
 // night 9's keys per layout: Colemak the middle columns, Qwerty anything off the home row, Dvorak the bottom row
 const ZONE = {
-  center3: { f: c => COL[c] === 4 || COL[c] === 5, name: 'Middle-column keys' },
+  center3: { f: isStretch, name: 'Middle-column keys' },
   nohome: { f: c => ROW[c] !== 1, name: 'Off-home keys' },
   bottom2: { f: c => ROW[c] === 2, name: 'Bottom-row keys' },
-}[LAYOUT.gim[0]] || { f: c => COL[c] === 4 || COL[c] === 5, name: 'Middle-column keys' };
+}[LAYOUT.gim[0]] || { f: isStretch, name: 'Middle-column keys' };
 // letters typed inside a one-hand run of 5+ (from its second letter on), for hand h (0 left, 1 right, -1 either)
 function runIdx(w, h) {
   const s = new Set();
