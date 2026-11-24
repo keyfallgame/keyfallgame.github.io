@@ -358,7 +358,8 @@ body.laststand #bar {
   border-radius: 5px;
   pointer-events: none;
   opacity: 0.55;
-  background-image: repeating-linear-gradient(0deg, #ffffff22 0 1px, transparent 1px 3px),
+  background-image:
+    repeating-linear-gradient(0deg, #ffffff22 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, #bfe6ff26 0 2px, transparent 2px 5px),
     linear-gradient(180deg, #bfe6ff1c, #bfe6ff08);
   animation: static 0.1s steps(2) infinite;
@@ -1826,6 +1827,7 @@ h2 {
   gap: 10px;
 }
 #lvls .lvl,
+#djLvls .lvl,
 #runs .lvl {
   aspect-ratio: 1;
   display: flex;
@@ -1836,6 +1838,7 @@ h2 {
   text-align: left;
 }
 #lvls .lvl .n,
+#djLvls .lvl .n,
 #runs .lvl .n {
   font-family: var(--mono);
   font-weight: 600;
@@ -1844,6 +1847,7 @@ h2 {
   color: var(--lc);
 }
 #lvls .lvl .t,
+#djLvls .lvl .t,
 #runs .lvl .t {
   font-family: var(--body);
   font-weight: 400;
@@ -1852,10 +1856,12 @@ h2 {
   color: var(--mute);
 }
 #lvls .lvl[aria-pressed='true'] .t,
+#djLvls .lvl[aria-pressed='true'] .t,
 #runs .lvl[aria-pressed='true'] .t {
   color: #e3decf;
 }
 #lvls .lvl[disabled] .n,
+#djLvls .lvl[disabled] .n,
 #runs .lvl[disabled] .n {
   color: color-mix(in srgb, var(--lc) 35%, #1a1e2d);
 }
@@ -3029,6 +3035,169 @@ h2 {
 #preQuit {
   min-width: 210px;
 }
+/* v339: Dojo, technique drills. Both sheets sit at the top like Options, so a longer lesson text never moves the header */
+#dojo,
+#dojodrill {
+  align-items: flex-start;
+  padding-top: clamp(24px, 7vh, 72px);
+}
+#dojo .card,
+#dojodrill .card {
+  margin-block: 0;
+}
+.djpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.djpanel .label {
+  color: var(--lc);
+}
+.djtext {
+  margin: 0;
+  max-width: 680px;
+  line-height: 1.5;
+  color: #c9c4b4;
+}
+#djOpts {
+  align-self: flex-start;
+}
+#djOpts[hidden],
+#djKb[hidden] {
+  display: none;
+}
+#djKb {
+  --lc: inherit;
+}
+.ddtext {
+  font-family: var(--mono);
+  font-size: clamp(20px, 2.2vw, 26px);
+  line-height: 1.75;
+  color: #6f7890;
+  max-width: 820px;
+  word-spacing: 0.15em;
+}
+.ddtext .dw {
+  white-space: nowrap;
+}
+.ddtext .dw.ok,
+.ddtext .ok {
+  color: var(--paper);
+}
+.ddtext .dw.bad,
+.ddtext .bad {
+  color: #ef6461;
+}
+.ddtext .dw.miss {
+  text-decoration: underline 2px #ef646166;
+  text-underline-offset: 5px;
+}
+.ddtext .cx {
+  box-shadow: inset 2px 0 0 var(--amber);
+}
+.ddtext .cxr {
+  box-shadow: inset -2px 0 0 var(--amber);
+}
+#ddRes .tile .ds {
+  font-size: 13px;
+  color: var(--mute);
+}
+#ddHint[hidden],
+#ddRes[hidden] {
+  display: none;
+}
+.modes .mode[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+/* v339+ (Discord feedback): a thin line on the bar's top edge fills as a normal night's required words get typed; no numbers */
+#bar {
+  position: relative;
+}
+.lprog {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 3px;
+  width: 0;
+  background: var(--lc, var(--amber));
+  opacity: 0.5;
+  transition: width 0.35s ease-out;
+  pointer-events: none;
+}
+.lprog[hidden] {
+  display: none;
+}
+/* Decluttered main menu: Virus log and Options sit beside the title; Dojo and Fn Keys live in the Extras tab */
+.mtop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.mcorner {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+}
+#menu .msec {
+  transition: opacity 0.18s;
+}
+#menu.extras #charSec,
+#menu.extras #swSec {
+  opacity: 0.32;
+}
+#lvls .lvl.ext .n {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+}
+/* Options rows: a label column, then the choices */
+.kgrid {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: 14px 20px;
+}
+.kgrid > .row {
+  gap: 8px;
+}
+.kgrid > [hidden] {
+  display: none;
+}
+.kgrid .fklab {
+  align-self: start;
+  padding-top: 6px;
+  margin-top: 14px;
+}
+.kgrid #fgrid {
+  margin-top: 14px;
+}
+.tgroups .tgrid {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+.tgroups .mcol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rleft {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* room for the 'Night 3+' legend under locked glyph keys */
+}
+.rleft .clrs {
+  margin-top: 0;
+}
+#menu .card {
+  gap: 14px;
+}
+.mtop {
+  flex-wrap: wrap;
+}
+.mcorner .btn {
+  white-space: nowrap;
+}
 </style>
 
 <div id="app">
@@ -3066,21 +3235,29 @@ h2 {
 
     <div class="sheet" id="menu">
       <div class="card">
-        <div>
-          <div class="eyebrow" id="tagline">A typing game</div>
-          <h1><span class="k">K</span>eyfall</h1>
+        <div class="mtop">
+          <div>
+            <div class="eyebrow" id="tagline">A typing game</div>
+            <h1><span class="k">K</span>eyfall</h1>
+          </div>
+          <div class="mcorner">
+            <button class="btn ghost sm" id="vlogOpenBtn">Virus log</button>
+            <button class="btn ghost sm" id="optOpenBtn">Options</button>
+          </div>
         </div>
-        <p class="lede">Words fall. Type them and press space before they hit the floor.</p>
         <p class="lede" id="mobile">Keyfall needs a physical keyboard.</p>
 
-        <div class="msec">
+        <div class="msec" id="charSec">
           <div class="label">Character</div>
           <div class="roster">
-            <div class="chars" id="chars"></div>
+            <div class="rleft">
+              <div class="chars" id="chars"></div>
+              <div class="clrs" id="charClrs"></div>
+            </div>
             <div class="cdetail" id="charDetail"></div>
           </div>
         </div>
-        <div class="msec">
+        <div class="msec" id="swSec">
           <div class="label">Switches</div>
           <div class="swrow">
             <div class="swleft">
@@ -3099,7 +3276,8 @@ h2 {
         <div class="msec">
           <div class="lvhead">
             <div class="modes" id="modes">
-              <button class="mode" data-m="run">Run</button><button class="mode" data-m="prac">Practice</button>
+              <button class="mode" data-m="run">Run</button><button class="mode" data-m="prac">Practice</button
+              ><button class="mode" data-m="ext" id="extMode" hidden>Extras</button>
             </div>
             <span class="modehint" id="modeHint"></span>
           </div>
@@ -3107,9 +3285,6 @@ h2 {
         </div>
         <div class="row">
           <button class="btn enter" id="start" data-key="⏎ Enter">Start</button>
-          <button class="btn ghost" id="fnOpenBtn" hidden>Fn Keys</button>
-          <button class="btn ghost" id="vlogOpenBtn">Virus log</button>
-          <button class="btn ghost" id="optOpenBtn">Options</button>
         </div>
       </div>
     </div>
@@ -3127,19 +3302,26 @@ h2 {
           ><button class="mode" data-t="test" role="tab" id="testTab">Testing</button>
         </div>
         <div class="opane" data-t="kb">
-          <div style="display: flex; flex-direction: column; gap: 10px">
+          <div class="kgrid">
             <div class="label">Layout</div>
             <div class="lays" id="lays"></div>
+            <div class="label" id="layvarLab">Build</div>
             <div class="row" id="layvar"></div>
-            <div class="row">
-              <button class="btn ghost sm tog" id="osLayBtn"></button
-              ><button class="btn ghost sm tog" id="spellBtn"></button>
+            <div class="label">Typing</div>
+            <div class="row" id="osLayRow">
+              <button class="btn ghost sm tog" data-os="0">Keyfall remaps keys</button
+              ><button class="btn ghost sm tog" data-os="1">My OS layout</button>
             </div>
+            <div class="label">Spelling</div>
+            <div class="row" id="spellRow">
+              <button class="btn ghost sm tog" data-br="0">American</button
+              ><button class="btn ghost sm tog" data-br="1">British</button>
+            </div>
+            <span></span>
             <p class="pdetail" id="layhint"></p>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 10px" id="fingerBox">
-            <div class="label">Fingering</div>
+            <div class="label fklab" id="fingerLab">Fingering</div>
             <div class="fcols" id="fgrid"></div>
+            <span class="fkspan"></span>
             <p class="pdetail" id="fhint"></p>
           </div>
         </div>
@@ -3170,27 +3352,37 @@ h2 {
           </div>
         </div>
         <div class="opane" data-t="test" hidden>
-          <div style="display: flex; flex-direction: column; gap: 10px">
+          <div class="kgrid tgroups">
+            <div class="label">Saves</div>
             <div class="tgrid">
               <button class="btn ghost sm" id="devunlock">Unlock everything</button>
-              <button class="btn ghost sm tog" id="devnodmg"></button>
-              <button class="btn ghost sm tog" id="devspeed"></button>
-              <button class="btn ghost sm" id="devcred8">Credits L8</button>
-              <button class="btn ghost sm" id="devcred12">Credits L12</button>
-              <button class="btn ghost sm" id="devlaypick">Layout screen</button>
-              <button class="btn ghost sm" id="devpro">Prologue</button>
               <button class="btn ghost sm" id="devreset" style="color: #ef6461">Reset saved progress</button>
             </div>
-            <div class="row" id="devmidiRow">
-              <button class="btn ghost sm" id="devmidi">Play a MIDI file</button>
-              <select class="btn ghost sm" id="devmidiSong" aria-label="Song sound for the MIDI file"></select>
-              <button class="btn ghost sm" id="devmidiStop">Stop</button>
-              <input type="file" id="devmidiFile" accept=".mid,.midi,audio/midi" hidden />
+            <div class="label" id="devplayLab">Play</div>
+            <div class="tgrid" id="devplay">
+              <button class="btn ghost sm tog" id="devnodmg"></button>
+              <button class="btn ghost sm tog" id="devspeed"></button>
             </div>
-            <p class="pdetail" id="devmidiInfo">
-              Hear an edited MIDI file with the game's own instruments. Leave the song on Auto to pick it from the file
-              name.
-            </p>
+            <div class="label" id="devprevLab">Previews</div>
+            <div class="tgrid">
+              <button class="btn ghost sm" id="devpro">Prologue</button>
+              <button class="btn ghost sm" id="devlaypick">Layout screen</button>
+              <button class="btn ghost sm" id="devcred8">Credits L8</button>
+              <button class="btn ghost sm" id="devcred12">Credits L12</button>
+            </div>
+            <div class="label" id="devmidiLab">Music</div>
+            <div class="mcol" id="devmidiBox">
+              <div class="row" id="devmidiRow">
+                <button class="btn ghost sm" id="devmidi">Play a MIDI file</button>
+                <select class="btn ghost sm" id="devmidiSong" aria-label="Song sound for the MIDI file"></select>
+                <button class="btn ghost sm" id="devmidiStop">Stop</button>
+                <input type="file" id="devmidiFile" accept=".mid,.midi,audio/midi" hidden />
+              </div>
+              <p class="pdetail" id="devmidiInfo">
+                Hear an edited MIDI file with the game's own instruments. Leave the song on Auto to pick it from the
+                file name.
+              </p>
+            </div>
           </div>
         </div>
         <div class="row"><button class="btn" id="optBack" data-key="Esc">Main menu</button></div>
@@ -3206,6 +3398,37 @@ h2 {
         </p>
         <div class="vlist" id="vlist"></div>
         <div class="row"><button class="btn" id="vlogBack" data-key="Esc">Main menu</button></div>
+      </div>
+    </div>
+
+    <div class="sheet" id="dojo" hidden>
+      <div class="card">
+        <h2>Dojo</h2>
+        <p class="lede">Technique drills, one for each night from 7 on. Nothing here counts toward your score.</p>
+        <div class="lvls" id="djLvls"></div>
+        <div class="djpanel">
+          <div class="label" id="djTitle"></div>
+          <p class="djtext" id="djText"></p>
+          <div class="modes" id="djOpts" hidden></div>
+          <div class="kb" id="djKb" hidden></div>
+        </div>
+        <div class="row">
+          <button class="btn enter" id="djGo" data-key="⏎ Enter">Start</button
+          ><button class="btn ghost" id="djBack" data-key="Esc">Main menu</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" id="dojodrill" hidden>
+      <div class="card">
+        <div class="label" id="ddLabel"></div>
+        <div class="ddtext" id="ddText"></div>
+        <p class="pdetail" id="ddHint">Space after each word. A wrong word still moves on.</p>
+        <div class="tiles" id="ddRes" hidden></div>
+        <div class="row">
+          <button class="btn enter" id="ddAgain" data-key="⏎ Enter" hidden>Again</button
+          ><button class="btn ghost" id="ddBack" data-key="Esc">Back</button>
+        </div>
       </div>
     </div>
 
@@ -3343,6 +3566,7 @@ h2 {
   </div>
 
   <div id="bar">
+    <div class="lprog" id="lprog" hidden></div>
     <div class="hpwrap">
       <div class="hprow">
         <span class="who" id="who">Maki</span>
@@ -8340,6 +8564,8 @@ const G = {
   char: save.char,
   sel: 1,
   practice: false,
+  extras: false, // main menu Extras tab: Dojo and Fn Keys in the level row
+  ext: store.get('ext', 'dojo'),
   pres: store.get('pres', 0),
   strikes: store.get('strikes', false),
   run: null,
@@ -11270,6 +11496,8 @@ function render() {
     G.mode === 'fnmenu' ||
     G.mode === 'options' ||
     G.mode === 'vlog' ||
+    G.mode === 'dojo' ||
+    G.mode === 'dojodrill' ||
     G.mode === 'prologue' ||
     G.mode === 'laypick'
   )
@@ -12848,6 +13076,17 @@ function hud() {
   $('hpbar').classList.toggle('low', !!r && G.mode === 'play' && r.hp > 0 && r.hp < 25);
   $('hpnum').textContent = shown;
   {
+    // progress line for normal nights (bosses have their health bar, Endless has waves)
+    const L = G.lvl && G.lvl.cfg,
+      on = !!(L && r && (G.mode === 'play' || G.mode === 'clear') && !L.mini && !L.phases && !L.endless && L.req > 0),
+      el = $('lprog');
+    if (el.hidden === on) el.hidden = !on;
+    if (on) {
+      el.style.width = Math.min(100, (G.lvl.correct / L.req) * 100) + '%';
+      el.style.setProperty('--lc', LCOL[L.n - 1]);
+    }
+  }
+  {
     const sk = $('strikes'),
       on = !!(r && r.strikesOn);
     sk.hidden = !on;
@@ -13032,11 +13271,10 @@ function renderMenu() {
     .map(([k, l]) => `<button class="lvl" data-lay="${k}" aria-pressed="${k === LBASE}">${l.name}</button>`)
     .join('');
   $('layvar').innerHTML = layVariants(LAYOUT_ID, 'btn ghost sm tog');
+  $('layvar').hidden = $('layvarLab').hidden = !$('layvar').innerHTML; // Build row only for Colemak-DH
   $('tagline').textContent = `A ${LAYOUTS[LTXT].name} typing game`;
-  $('osLayBtn').textContent = OSLAY ? 'Typing: my OS layout' : 'Typing: Keyfall remaps keys';
-  $('osLayBtn').setAttribute('aria-pressed', OSLAY);
-  $('spellBtn').textContent = BRITISH ? 'Spelling: British' : 'Spelling: American';
-  $('spellBtn').setAttribute('aria-pressed', BRITISH);
+  for (const b of $('osLayRow').children) b.setAttribute('aria-pressed', (b.dataset.os === '1') === OSLAY);
+  for (const b of $('spellRow').children) b.setAttribute('aria-pressed', (b.dataset.br === '1') === BRITISH);
   $('layhint').textContent = OSLAY
     ? `Keys come from your OS. Levels are built for ${LAYOUT.name}, so on other layouts they won't line up.`
     : `Your OS layout does not matter: Keyfall reads physical keys and maps them to ${LAYOUT.name}${LAYOUT.note ? ` (${LAYOUT.note})` : ''}. Progress and records are kept per layout.`;
@@ -13065,8 +13303,10 @@ function renderMenu() {
         ([k, c]) =>
           `<ul${k === G.char ? '' : ' class="off" aria-hidden="true"'}>${c.bullets.map(b => `<li>${b}</li>`).join('')}</ul>`
       )
-      .join('')}</div>
-    <div class="clrs">${plaque(8, clr[0])}${save.maxReached >= 9 ? plaque(12, clr[1]) : ''}${fileBtn(G.char)}</div>`;
+      .join('')}</div>`;
+  // boss plaques and the File key sit under the glyph keys, where the roster has room
+  $('charClrs').style.setProperty('--c', sc.hex);
+  $('charClrs').innerHTML = `${plaque(8, clr[0])}${save.maxReached >= 9 ? plaque(12, clr[1]) : ''}${fileBtn(G.char)}`;
   // only 1-8 show until level 9 is reached, so 8 looks like the end; 9-12 then fade in once
   const show = save.maxReached >= 9 ? 12 : 8,
     reveal = show === 12 && !store.get(LK('seen9'), false);
@@ -13078,19 +13318,41 @@ function renderMenu() {
     canPrac = n => n <= 6 || n <= save.maxReached; // 7-8 stay locked until reached, so their traps are a surprise
   if (G.practice ? !canPrac(G.sel) || G.sel > show : !starts.includes(G.sel) || !canRun(G.sel)) G.sel = 1;
   // one row of level keys: Run shows the run starts, Practice every level
-  for (const b of document.querySelectorAll('#modes .mode'))
-    b.setAttribute('aria-pressed', (b.dataset.m === 'prac') === G.practice);
-  $('modeHint').textContent = G.practice ? "One night. Unlocks don't count." : '';
+  // Extras (Dojo, Fn Keys) share the level row; the tab shows once either is open
+  const fnOpen = save.fnOpen || Object.keys(save.pressure).length > 0,
+    dojoOpen = save.maxReached >= 7, // the Dojo opens once night 6 is cleared
+    exts = [...(dojoOpen ? ['dojo'] : []), ...(fnOpen ? ['fn'] : [])];
+  $('extMode').hidden = !exts.length;
+  if (!exts.length) G.extras = false;
+  if (G.extras && !exts.includes(G.ext)) G.ext = exts[0];
+  const mm = G.extras ? 'ext' : G.practice ? 'prac' : 'run';
+  for (const b of document.querySelectorAll('#modes .mode')) b.setAttribute('aria-pressed', b.dataset.m === mm);
+  $('modeHint').textContent = G.extras ? '' : G.practice ? "One night. Unlocks don't count." : '';
+  $('menu').classList.toggle('extras', !!G.extras);
+  for (const id of ['charSec', 'swSec']) $(id).inert = !!G.extras; // neither extra uses these picks
   const keys = G.practice ? LEVELS.filter(L => L.n <= show).map(L => L.n) : starts;
   $('lvls').style.setProperty('--nl', show);
-  $('lvls').innerHTML = keys
-    .map(n => {
-      const open = G.practice ? canPrac(n) : canRun(n),
-        inf = n === 13,
-        rv = reveal && G.practice && n > 8;
-      return `<button class="lvl${rv ? ' reveal' : ''}" style="--lc:${inf ? '#ebe6d6' : LCOL[n - 1]};${rv ? `animation-delay:${0.35 + (n - 9) * 0.28}s` : ''}" data-l="${n}" aria-pressed="${G.sel === n}" ${open ? '' : 'disabled'}><span class="n">${inf ? '∞' : n}</span><span class="t">${inf ? 'Endless' : open ? TITLES[n - 1] : ''}</span></button>`;
-    })
-    .join('');
+  const EXT = {
+    dojo: ['Dojo', 'Drills', '#8fd3c9'],
+    fn: ['Fn', 'Fn Keys', '#e0b36a'],
+  };
+  if (G.extras) {
+    $('lvls').style.setProperty('--nl', show);
+    $('lvls').innerHTML = exts
+      .map(
+        k =>
+          `<button class="lvl ext" style="--lc:${EXT[k][2]}" data-x="${k}" aria-pressed="${G.ext === k}"><span class="n">${EXT[k][0]}</span><span class="t">${EXT[k][1]}</span></button>`
+      )
+      .join('');
+  } else
+    $('lvls').innerHTML = keys
+      .map(n => {
+        const open = G.practice ? canPrac(n) : canRun(n),
+          inf = n === 13,
+          rv = reveal && G.practice && n > 8;
+        return `<button class="lvl${rv ? ' reveal' : ''}" style="--lc:${inf ? '#ebe6d6' : LCOL[n - 1]};${rv ? `animation-delay:${0.35 + (n - 9) * 0.28}s` : ''}" data-l="${n}" aria-pressed="${G.sel === n}" ${open ? '' : 'disabled'}><span class="n">${inf ? '∞' : n}</span><span class="t">${inf ? 'Endless' : open ? TITLES[n - 1] : ''}</span></button>`;
+      })
+      .join('');
   const STEM =
     '<svg class="stem" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="silv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#9aa4b0"/><stop offset=".55" stop-color="#e6eaef"/><stop offset="1" stop-color="#7c8692"/></linearGradient></defs><rect x="2" y="2" width="36" height="36" rx="6" class="hs"/><circle cx="20" cy="20" r="12" class="gl"/><path d="M17 9h6v8h8v6h-8v8h-6v-8H9v-6h8z" class="cr"/></svg>';
   const pmax = Math.min(8, (save.pressure[G.char] ?? -1) + 1);
@@ -13122,7 +13384,7 @@ function renderMenu() {
       )
       .join('')
   ).join('')}</div>`;
-  const anySw = Object.keys(save.pressure).length > 0;
+  const anySw = pmaxAll >= 2; // Glass Keys shows once any character has Brown open (based on saves, so picking never moves the menu)
   $('strikesRow').hidden = !anySw;
   if (!anySw) G.strikes = false;
   const sOK = G.pres >= 2,
@@ -13154,8 +13416,6 @@ function renderMenu() {
     )
     .join('')}</div>`;
   $('start').textContent = 'Start'; // just 'Start'; the picks are already on screen
-  const fnOpen = save.fnOpen || Object.keys(save.pressure).length > 0;
-  $('fnOpenBtn').hidden = !fnOpen;
   if (fnOpen) {
     const fmax = save.maxReached >= 9 ? 9 : 8;
     if (G.fnD > fmax) G.fnD = fmax; // the slider stops at 8 until level 9 is reached
@@ -13189,7 +13449,7 @@ $('chars').addEventListener('click', e => {
   persist();
   renderMenu();
 });
-$('charDetail').addEventListener('click', e => {
+$('charClrs').addEventListener('click', e => {
   if (e.target.closest('#cfBtn')) openFile(G.char);
 });
 $('cfile').addEventListener('click', e => {
@@ -13372,26 +13632,32 @@ function fingClick(e, lay) {
   store.set('fingers', f);
   return true;
 }
+// Options: presets, plus Custom, which opens one column per key with its finger choices under the letter
+let FING_CUSTOM = false; // Custom picked this visit; a fingering that matches no preset always shows the columns
 function fingCols(lay, f) {
-  // Options: presets on top, then one column per key with its finger choices stacked under the letter
-  const pre = Object.entries(FING_PRESET)
-    .map(
-      ([n, p]) =>
-        `<button class="btn ghost sm tog" data-fp="${n}" aria-pressed="${p.every((v, i) => f[i] === v)}">${n}</button>`
-    )
-    .join('');
-  const cols = FING_SLOTS.map(([ci, ok], i) => {
-    const c = fingLetter(lay, ci);
-    if (!c) return '';
-    const lab = v => (v === 3 && ci !== 4 ? 'Index' : FING_LABEL[v]);
-    return `<div class="fcol"><span class="fkey">${c}</span>${ok
+  const match = Object.values(FING_PRESET).some(p => p.every((v, i) => f[i] === v)),
+    custom = FING_CUSTOM || !match;
+  const pre =
+    Object.entries(FING_PRESET)
       .map(
-        v =>
-          `<button class="btn ghost sm tog" data-fs="${i}" data-fv="${v}" aria-pressed="${f[i] === v}">${lab(v)}</button>`
+        ([n, p]) =>
+          `<button class="btn ghost sm tog" data-fp="${n}" aria-pressed="${!custom && p.every((v, i) => f[i] === v)}">${n}</button>`
       )
-      .join('')}</div>`;
-  }).join('');
-  return `<div class="fpres"><span class="vl">Presets</span>${pre}</div><div class="fcolrow">${cols}</div>`;
+      .join('') + `<button class="btn ghost sm tog" data-fcus="1" aria-pressed="${custom}">Custom</button>`;
+  const cols = custom
+    ? FING_SLOTS.map(([ci, ok], i) => {
+        const c = fingLetter(lay, ci);
+        if (!c) return '';
+        const lab = v => (v === 3 && ci !== 4 ? 'Index' : FING_LABEL[v]);
+        return `<div class="fcol"><span class="fkey">${c}</span>${ok
+          .map(
+            v =>
+              `<button class="btn ghost sm tog" data-fs="${i}" data-fv="${v}" aria-pressed="${f[i] === v}">${lab(v)}</button>`
+          )
+          .join('')}</div>`;
+      }).join('')
+    : '';
+  return `<div class="fpres">${pre}</div>${cols ? `<div class="fcolrow">${cols}</div>` : ''}`;
 }
 // Options tabs: Keyboard, Audio, Testing (Shortcuts on the public build)
 let OTAB = 'kb';
@@ -13415,22 +13681,34 @@ $('vlogOpenBtn').onclick = () => setMode('vlog');
 $('vlogBack').onclick = () => setMode('menu');
 const FING_HINT = 'The finger you really use for each key. Words picked to be awkward for your hands follow it.';
 function renderFingering() {
-  $('fingerBox').hidden = !fingAsk(LAYOUT_ID);
+  const ask = fingAsk(LAYOUT_ID);
+  for (const id of ['fingerLab', 'fgrid', 'fhint']) $(id).hidden = !ask;
+  document.querySelector('#options .fkspan').hidden = !ask;
   const f = fingGet(LAYOUT_ID);
   $('fgrid').innerHTML = fingCols(LAYOUT_ID, f);
   $('fhint').textContent =
     FING_HINT + (JSON.stringify(f) !== FING_LOADED ? ' Changes take effect when you close Options.' : '');
 }
 $('fgrid').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (b && b.dataset.fcus) {
+    FING_CUSTOM = true;
+    return renderFingering();
+  }
+  if (b && b.dataset.fp) FING_CUSTOM = false;
   if (fingClick(e, LAYOUT_ID)) renderFingering();
 });
 const fingDirty = () => fingAsk(LAYOUT_ID) && JSON.stringify(fingGet(LAYOUT_ID)) !== FING_LOADED;
-$('osLayBtn').onclick = () => {
+$('osLayRow').onclick = e => {
+  const b = e.target.closest('[data-os]');
+  if (!b || (b.dataset.os === '1') === OSLAY) return;
   OSLAY = !OSLAY;
   store.set('oslayout', OSLAY);
   renderMenu();
 };
-$('spellBtn').onclick = () => {
+$('spellRow').onclick = e => {
+  const b = e.target.closest('[data-br]');
+  if (!b || (b.dataset.br === '1') === BRITISH) return;
   store.set('british', !BRITISH); // the word pools are built at load, so this reloads back into Options
   try {
     sessionStorage.setItem('kfBackToOptions', '1');
@@ -13453,12 +13731,17 @@ $('pres').addEventListener('click', e => {
 $('lvls').addEventListener('click', e => {
   const b = e.target.closest('.lvl');
   if (!b || b.disabled) return;
-  G.sel = +b.dataset.l;
+  if (b.dataset.x) {
+    G.ext = b.dataset.x;
+    store.set('ext', G.ext);
+  } else G.sel = +b.dataset.l;
   renderMenu();
 });
 $('modes').addEventListener('click', e => {
   const b = e.target.closest('.mode');
   if (!b) return;
+  G.extras = b.dataset.m === 'ext';
+  if (G.extras) return renderMenu();
   const prac = b.dataset.m === 'prac';
   if (prac !== G.practice) {
     G.practice = prac;
@@ -13574,7 +13857,12 @@ function closePrologue() {
   }, 600);
 }
 $('pgo').onclick = closePrologue;
+const openFnMenu = () => {
+  renderMenu();
+  setMode('fnmenu');
+};
 const startSel = () => {
+  if (G.extras) return G.ext === 'fn' ? openFnMenu() : setMode('dojo'); // Extras: Start opens the picked one
   if (!store.get('seenPro', false)) showPrologue(() => startLevel(G.sel, true));
   else startLevel(G.sel, true);
 };
@@ -13598,6 +13886,7 @@ $('fnDiff').addEventListener('input', e => {
 });
 $('fnStart').onclick = () => startFn(G.fnJob, G.fnD);
 function openOptions() {
+  FING_CUSTOM = false;
   renderMenu();
   setMode('options');
 }
@@ -13606,10 +13895,6 @@ $('optBack').onclick = () => {
   SFX.music(null); // stops a MIDI preview
   renderMenu();
   setMode('menu');
-};
-$('fnOpenBtn').onclick = () => {
-  renderMenu();
-  setMode('fnmenu');
 };
 $('fnBack').onclick = () => {
   renderMenu();
@@ -13912,7 +14197,15 @@ function fadeTo(fn, out = 0.3, hold = 0, inn = 0.45, col = '#000') {
 }
 function setMode(m) {
   {
-    const nb = m === 'menu' || m === 'fnmenu' || m === 'options' || m === 'vlog' || m === 'prologue' || m === 'laypick';
+    const nb =
+      m === 'menu' ||
+      m === 'fnmenu' ||
+      m === 'options' ||
+      m === 'vlog' ||
+      m === 'dojo' ||
+      m === 'dojodrill' ||
+      m === 'prologue' ||
+      m === 'laypick';
     if (document.body.classList.contains('nobar') !== nb) {
       document.body.classList.toggle('nobar', nb);
       if (typeof resize === 'function') resize();
@@ -13933,11 +14226,14 @@ function setMode(m) {
   $('fnmenu').hidden = m !== 'fnmenu';
   $('options').hidden = m !== 'options';
   $('vlog').hidden = m !== 'vlog';
+  $('dojo').hidden = m !== 'dojo';
+  $('dojodrill').hidden = m !== 'dojodrill';
   $('pre').hidden = m !== 'pre';
   $('clear').hidden = m !== 'clear';
   $('dead').hidden = m !== 'dead';
   if (m !== 'play' && m !== 'drill') G.paused = false;
   if (m === 'vlog') renderVirusList();
+  if (m === 'dojo') renderDojo();
   if (m === 'options') renderOptTabs();
   $('pause').hidden = !G.paused;
   if (m !== prev) {
@@ -13953,6 +14249,436 @@ function setPause(p) {
   G.paused = p;
   $('pause').hidden = !p;
   SFX.pauseMusic(p);
+}
+// ---------- Dojo: technique lessons (v339) ----------
+// One lesson per night from 7 to 12. Each is a short drill of a few lines of words, then WPM, accuracy and the
+// lesson's own timing metric. Nothing here counts toward score, records or unlocks.
+// Opens: lesson N once night N is reached (night N-1 cleared). Lesson 8 shows locked beside 7; 10-12 locked beside 9;
+// 9-12 stay hidden until night 9 is reached, like the nights themselves.
+const DOJO_N = [7, 8, 9, 10, 11, 12];
+const B_TRICK = LBASE === 'colemak' || LBASE === 'qwerty'; // b sits on the bottom row's center key, in reach of either index (not on Colemak-DH, where it moved up, or Dvorak)
+const PINKY11 = LAYOUT.gim[2] === 'pinky3'; // Dvorak's night 11 is Burning Pinky, so its lesson 11 drills pinkies
+const DOJO_NAMES = {
+  7: 'Leftovers',
+  8: 'Strangers',
+  9: 'Hand shift',
+  10: 'Borrow',
+  11: PINKY11 ? 'Pinkies' : 'One hand',
+  12: 'Mixed',
+};
+const SUB7 = { left: 'Leftovers', ends: 'Common endings' };
+const LEFT_KEYS = LEVELS[6].rare; // the keys learned last (night 7's leftovers)
+const isPinky = c => fType(FINGER[c]) === 3;
+const DOJO_WORDS = 20; // about three lines
+const fType = f => (f === FLEX ? -1 : f <= 3 ? 3 - f : f - 4); // 0 index, 1 middle, 2 ring, 3 pinky
+const isSfb = (a, b) => a !== b && FINGER[a] === FINGER[b] && FINGER[a] !== FLEX;
+// same-finger groups: each pair borrows the next stronger finger (index pairs borrow the middle)
+const SFB_GROUPS = [
+  { id: 'im', name: 'Index / middle', t: [0, 1] },
+  { id: 'mr', name: 'Middle / ring', t: [2] },
+  { id: 'rp', name: 'Ring / pinky', t: [3] },
+];
+const sfbGroup = (a, b) => (isSfb(a, b) ? SFB_GROUPS.find(g => g.t.includes(fType(FINGER[a]))).id : null);
+const ENDS = ['tion', 'sion', 'ment', 'ness', 'ally', 'able', 'less', 'ing', 'ful', 'ous', 'ive'];
+const endOf = w => ENDS.find(e => w.length >= e.length + 3 && w.endsWith(e)) || '';
+// night 9's keys per layout: Colemak the middle columns, Qwerty anything off the home row, Dvorak the bottom row
+const ZONE = {
+  center3: { f: c => COL[c] === 4 || COL[c] === 5, name: 'Middle-column keys' },
+  nohome: { f: c => ROW[c] !== 1, name: 'Off-home keys' },
+  bottom2: { f: c => ROW[c] === 2, name: 'Bottom-row keys' },
+}[LAYOUT.gim[0]] || { f: c => COL[c] === 4 || COL[c] === 5, name: 'Middle-column keys' };
+// letters typed inside a one-hand run of 5+ (from its second letter on), for hand h (0 left, 1 right, -1 either)
+function runIdx(w, h) {
+  const s = new Set();
+  let st = 0;
+  for (let i = 1; i <= w.length; i++) {
+    if (i < w.length && hand(w[i]) !== 2 && hand(w[i]) === hand(w[i - 1])) continue;
+    if (i - st >= 5 && (h < 0 || hand(w[st]) === h)) for (let k = st + 1; k < i; k++) s.add(k);
+    st = i;
+  }
+  return s;
+}
+let DJP = null; // word pools, built on first use
+function dojoPools() {
+  if (DJP) return DJP;
+  const top10 = WORDS.slice(0, 10000),
+    top20 = WORDS.slice(0, 20000);
+  const g = n => LEVELS[n - 1].cats[0].pool;
+  DJP = {
+    ends: top10.filter(w => w.length >= 6 && w.length <= 11 && endOf(w)),
+    left: [...new Set([...LEVELS[6].cats[0].pool, ...LEVELS[6].cats[1].pool])].sort(
+      (a, b) => RANK.get(a) - RANK.get(b)
+    ),
+    8: g(8),
+    9: g(9),
+    10: Object.fromEntries(
+      SFB_GROUPS.map(G => [
+        G.id,
+        top20.filter(w => w.length >= 4 && w.length <= 10 && pairs(w, (a, b) => sfbGroup(a, b) === G.id)),
+      ])
+    ),
+    11: [0, 1, -1].map(h => top20.filter(w => w.length >= 5 && w.length <= 11 && runIdx(w, h).size)),
+    g10: g(10),
+    g11: g(11),
+  };
+  return DJP;
+}
+const DOJO_TEXT = {
+  7: {
+    left: `The keys you learned last get the least practice: ${[...LEFT_KEYS].join(' ')}. They feel slow because your fingers rarely visit them, not because they're hard. Every word here carries at least one. Let your eyes find the odd key before your fingers get there, then go.`,
+    ends: 'Endings like -ing, -tion, -ment and -ness come up so often that your fingers can fire them as one burst. Every word here ends in one. Type the stem, then let the ending roll out without spelling it letter by letter.',
+  },
+  8: "Rare words you've never typed. There's no trick to learn here, just two habits the numbers below will track. Read the next word while your fingers finish this one, so the pause before its first key shrinks. And when you slip, fix it fast: Ctrl+Backspace clears the whole word, and Caps Lock works as Backspace.",
+  9: lt({
+    colemak: `The middle columns (${'abcdefghijklmnopqrstuvwxyz'.split('').filter(ZONE.f).join(' ')}) belong to your index fingers, and they're a reach. Stretching a finger out and back for every one is what hurts. Instead, let your whole hand drift: shift it half a key toward the center, so the index sits closer and the other fingers follow. Move from the wrist, not the knuckle, and come back home when the word ends.`,
+    qwerty:
+      'These words skip the home row and jump between the top and bottom rows on one hand. Reaching each key with one finger from home is what hurts. Instead, let your whole hand drift: lift it toward the row the word lives on, so every finger is closer. Move from the wrist, not the knuckle, and come back home when the word ends.',
+    dvorak:
+      'These words lean on the bottom row, often off the index fingers. Curling one finger down for every key is what hurts. Instead, let your whole hand drift: drop it a little toward the bottom row while the word needs it, so the fingers reach less. Move from the wrist, not the knuckle, and come back home when the word ends.',
+  }),
+  10: "A same-finger pair makes one finger hit twice in a row. Use a borrowed finger: let a neighbor take one of the two keys. But a dodge isn't free. If the borrowed finger is needed for the next letter, or the hop is short, the plain double tap can be faster. Read ahead and pick, the way a pianist picks fingering from the notes coming up.",
+  11: PINKY11
+    ? "Night 11 on Dvorak belongs to your pinkies: a, l, s and z, often back to back. There's little to borrow here; the ring finger can take a key now and then, but mostly this is endurance. Keep the pinky curved and light, let the hand turn a little toward it instead of stretching, and don't press harder than you need. A steady pace beats a fast one that cramps."
+    : B_TRICK
+      ? 'Almost no tricks for this one. A long run on one hand has no other finger to share the work. The one exception is b. It sits in the middle of the board, so either index can reach it; take it with the other hand and the run breaks. Everything else is endurance. Read the whole word before you start, let the rolls inside it land as one, and keep the idle hand loose. A clean run beats a fast one that breaks halfway.'
+      : 'No tricks for this one. A long run on one hand has no other finger to share the work, and no fingering changes that. It all comes down to endurance. Read the whole word before you start, let the rolls inside it land as one, and keep the idle hand loose. A clean run beats a fast one that breaks halfway.',
+  12: 'Everything from nights 9 to 11, mixed and unlabeled. Spot what each word needs as it comes, and pick: shift the hand, borrow a finger, or settle into the run.',
+};
+const DOJO_TUT =
+  "Every layout has pairs of letters that land on the same finger, back to back. That finger has to hit, lift and travel before the second key, and it's the slowest thing in typing. Good typists don't always take the textbook finger. They borrow a neighbor for one of the two keys, the way a pianist changes fingering for a hard passage. The drills here are sorted by which fingers share the work: index and middle first, where most pairs live, then middle and ring, then ring and pinky. The pairs come from your own fingering in Options.";
+const DJ = { n: 7, grp: 'im', hand: -1, sub: 'left', tut: false };
+const dojoOpen = n => save.maxReached >= n;
+function dojoKb(set) {
+  return KB_ROWS.map(
+    ({ row, off }) =>
+      `<div class="kbrow" style="margin-left:${off * 10}%">` +
+      [...row]
+        .map(c =>
+          isLetter(c) ? `<div class="kk ${set(c) ? 'new' : 'learned'}">${c}</div>` : '<div class="kk blank"></div>'
+        )
+        .join('') +
+      '</div>'
+  ).join('');
+}
+function renderDojo() {
+  const shown = DOJO_N.filter(n => n <= 8 || save.maxReached >= 9);
+  if (!dojoOpen(DJ.n)) DJ.n = 7;
+  $('djLvls').innerHTML = shown
+    .map(n => {
+      const open = dojoOpen(n);
+      return `<button class="lvl" style="--lc:${LCOL[n - 1]}" data-dj="${n}" aria-pressed="${DJ.n === n}" ${open ? '' : 'disabled'}><span class="n">${n}</span><span class="t">${open ? DOJO_NAMES[n] : 'Clear ' + (n - 1)}</span></button>`;
+    })
+    .join('');
+  const n = DJ.n,
+    lc = LCOL[n - 1];
+  $('dojo').style.setProperty('--lc', lc);
+  const tut = n === 10 && !store.get('dojoTut', false);
+  DJ.tut = tut;
+  $('djTitle').textContent = tut ? 'Borrowed fingers' : n === 7 ? SUB7[DJ.sub] : DOJO_NAMES[n];
+  $('djText').textContent = tut ? DOJO_TUT : n === 7 ? DOJO_TEXT[7][DJ.sub] : DOJO_TEXT[n];
+  let opts = '',
+    kb = null;
+  if (n === 10 && dojoPools()[10][DJ.grp].length < DOJO_WORDS) DJ.grp = 'im';
+  if (n === 10 && !tut) {
+    opts = SFB_GROUPS.map(
+      G =>
+        `<button class="mode" data-grp="${G.id}" aria-pressed="${DJ.grp === G.id}" ${dojoPools()[10][G.id].length >= DOJO_WORDS ? '' : 'disabled'}>${G.name}</button>`
+    ).join('');
+    const t = SFB_GROUPS.find(G => G.id === DJ.grp).t;
+    kb = c => FINGER[c] !== FLEX && t.includes(fType(FINGER[c]));
+  }
+  if (n === 7) {
+    opts = [
+      ['left', 'Leftovers'],
+      ['ends', 'Common endings'],
+    ]
+      .map(([k, l]) => `<button class="mode" data-sub="${k}" aria-pressed="${DJ.sub === k}">${l}</button>`)
+      .join('');
+    if (DJ.sub === 'left') kb = c => LEFT_KEYS.has(c);
+  }
+  if (n === 11 && PINKY11) kb = isPinky;
+  if (n === 11 && !PINKY11) {
+    if (dojoPools()[11][DJ.hand < 0 ? 2 : DJ.hand].length < DOJO_WORDS) DJ.hand = -1; // Dvorak has almost no right-hand runs: its vowels all sit on the left
+    opts = [
+      [0, 'Left hand'],
+      [1, 'Right hand'],
+      [-1, 'Both'],
+    ]
+      .map(
+        ([h, l]) =>
+          `<button class="mode" data-hand="${h}" aria-pressed="${DJ.hand === h}" ${dojoPools()[11][h < 0 ? 2 : h].length >= DOJO_WORDS ? '' : 'disabled'}>${l}</button>`
+      )
+      .join('');
+    if (DJ.hand >= 0) kb = c => hand(c) === DJ.hand;
+  }
+  if (n === 9) kb = ZONE.f;
+  $('djOpts').innerHTML = opts;
+  $('djOpts').hidden = !opts;
+  $('djKb').hidden = !kb;
+  if (kb) $('djKb').innerHTML = dojoKb(kb);
+  $('djGo').textContent = tut ? 'Got it' : 'Start';
+}
+$('djBack').onclick = () => setMode('menu');
+$('djLvls').addEventListener('click', e => {
+  const b = e.target.closest('[data-dj]');
+  if (!b || b.disabled) return;
+  DJ.n = +b.dataset.dj;
+  renderDojo();
+});
+$('djOpts').addEventListener('click', e => {
+  const b = e.target.closest('.mode');
+  if (!b || b.disabled) return;
+  if (b.dataset.grp) DJ.grp = b.dataset.grp;
+  if (b.dataset.hand) DJ.hand = +b.dataset.hand;
+  if (b.dataset.sub) DJ.sub = b.dataset.sub;
+  renderDojo();
+});
+function dojoGo() {
+  if (DJ.tut) {
+    store.set('dojoTut', true);
+    renderDojo();
+    return;
+  }
+  dojoStart();
+}
+$('djGo').onclick = dojoGo;
+// ---- the drill ----
+let D = null;
+function dojoPick() {
+  const P = dojoPools(),
+    n = DJ.n,
+    out = [],
+    seen = new Set();
+  const from = pool => {
+    // leans toward common words: pools are in frequency order
+    for (let t = 0; t < 40; t++) {
+      const w = pool[Math.floor(pool.length * Math.random() ** 1.6)];
+      if (w && !seen.has(w)) return w;
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  };
+  for (let i = 0; i < DOJO_WORDS; i++) {
+    const pool =
+      n === 7
+        ? P[DJ.sub]
+        : n === 10
+          ? P[10][DJ.grp]
+          : n === 11
+            ? PINKY11
+              ? P.g11
+              : P[11][DJ.hand < 0 ? 2 : DJ.hand]
+            : n === 12
+              ? [P[9], P.g10, P.g11][i % 3]
+              : P[n];
+    const w = from(pool);
+    seen.add(w);
+    out.push(w);
+  }
+  if (n === 12) out.sort(() => Math.random() - 0.5);
+  return out;
+}
+function dojoStart() {
+  D = {
+    n: DJ.n,
+    words: dojoPick(),
+    cur: 0,
+    input: '',
+    typed: [],
+    t0: 0,
+    keys: 0,
+    okKeys: 0,
+    gaps: [],
+    reads: [],
+    fixes: [],
+    last: 0,
+    lastLetter: false,
+    errT: 0,
+    spaceT: 0,
+    done: false,
+  };
+  $('ddLabel').textContent =
+    'Dojo · ' +
+    (D.n === 7
+      ? SUB7[DJ.sub]
+      : DOJO_NAMES[D.n] +
+        (D.n === 10
+          ? ` · ${SFB_GROUPS.find(G => G.id === DJ.grp).name}`
+          : D.n === 11 && !PINKY11
+            ? ` · ${['Left hand', 'Right hand'][DJ.hand] || 'Both hands'}`
+            : ''));
+  $('dojodrill').style.setProperty('--lc', LCOL[D.n - 1]);
+  $('ddRes').hidden = true;
+  $('ddAgain').hidden = true;
+  $('ddHint').hidden = false;
+  setMode('dojodrill');
+  dojoRender();
+}
+const escH = s => s.replace(/[<>&]/g, '');
+function dojoRender() {
+  if (!D) return;
+  $('ddText').innerHTML = D.words
+    .map((w, i) => {
+      if (i < D.cur) {
+        // a finished word: only the wrong letters turn red (missed ones too); letters typed past its end show in red
+        const t = D.typed[i];
+        if (t === w) return `<span class="dw ok">${escH(w)}</span>`;
+        let s = '';
+        for (let k = 0; k < Math.max(w.length, t.length); k++)
+          s += `<span class="${k < w.length && t[k] === w[k] ? 'ok' : 'bad'}">${escH(k < w.length ? w[k] : t[k])}</span>`;
+        return `<span class="dw miss">${s}</span>`;
+      }
+      if (i > D.cur) return `<span class="dw">${escH(w)}</span>`;
+      const inp = D.input;
+      let s = '';
+      for (let k = 0; k < Math.max(w.length, inp.length); k++) {
+        const c = k < w.length ? w[k] : inp[k];
+        const cls = k < inp.length ? (inp[k] === w[k] ? 'ok' : 'bad') : '';
+        const end = k === Math.max(w.length, inp.length) - 1 && inp.length >= w.length; // caret after the last letter, drawn on it so nothing widens
+        s += `<span class="${cls}${k === inp.length ? ' cx' : ''}${end ? ' cxr' : ''}">${escH(c)}</span>`; // letters typed past the word's end show as typed, in red
+      }
+      return `<span class="dw cur">${s}</span>`;
+    })
+    .join(' ');
+}
+function dojoLetter(c) {
+  if (!D || D.done) return;
+  const now = performance.now(),
+    w = D.words[D.cur],
+    prevClean = w.startsWith(D.input);
+  if (!D.t0) D.t0 = now;
+  if (D.input.length >= 24) return;
+  D.input += c;
+  D.keys++;
+  const clean = w.startsWith(D.input);
+  if (clean) D.okKeys++;
+  if (D.input.length === 1 && D.spaceT) D.reads.push(now - D.spaceT);
+  D.spaceT = 0;
+  if (clean && prevClean && D.lastLetter && D.input.length >= 2)
+    D.gaps.push({ a: D.input[D.input.length - 2], b: c, i: D.input.length - 1, w, dt: now - D.last });
+  if (prevClean && !clean) D.errT = now;
+  D.last = now;
+  D.lastLetter = true;
+  if (D.cur === D.words.length - 1 && D.input === w) {
+    D.typed[D.cur] = D.input;
+    D.cur++;
+    return dojoFinish(now);
+  }
+  dojoRender();
+}
+function dojoBack(all) {
+  if (!D || D.done || !D.input) return;
+  const now = performance.now();
+  D.input = all ? '' : D.input.slice(0, -1);
+  D.lastLetter = false;
+  if (D.errT && D.words[D.cur].startsWith(D.input)) {
+    D.fixes.push(now - D.errT);
+    D.errT = 0;
+  }
+  dojoRender();
+}
+function dojoSpace() {
+  if (!D || D.done || !D.input) return;
+  const now = performance.now();
+  D.typed[D.cur] = D.input;
+  D.errT = 0;
+  D.cur++;
+  D.input = '';
+  D.spaceT = now;
+  D.lastLetter = false;
+  if (D.cur >= D.words.length) return dojoFinish(now);
+  dojoRender();
+}
+const avgMs = a => (a.length ? Math.round(a.reduce((s, x) => s + x, 0) / a.length) : null);
+function gapStats(f) {
+  const hit = [],
+    rest = [];
+  for (const g of D.gaps) (f(g) ? hit : rest).push(g.dt);
+  return [avgMs(hit), avgMs(rest), hit.length];
+}
+function dojoFinish(now) {
+  D.done = true;
+  dojoRender();
+  const min = Math.max(0.05, (now - D.t0) / 60000),
+    chars = D.words.reduce((s, w, i) => s + (D.typed[i] === w ? w.length + 1 : 0), 0) - 1,
+    wpm = Math.max(0, Math.round(chars / 5 / min)),
+    acc = D.keys ? Math.round((D.okKeys / D.keys) * 1000) / 10 : 100;
+  const tile = (k, v, sub) =>
+    `<div class="tile"><span class="k">${k}</span><span class="v">${v}</span>${sub ? `<span class="ds">${sub}</span>` : ''}</div>`;
+  const ms = v => (v == null ? 'None' : v + ' ms');
+  const gapTile = (label, f, unit) => {
+    const [a, b] = gapStats(f);
+    return tile(label, ms(a), a == null ? 'none typed cleanly' : `per ${unit}, other ${unit}s ${ms(b)}`);
+  };
+  const t = [tile('WPM', wpm), tile('Accuracy', acc + '%')];
+  const n = D.n,
+    runs = new Map();
+  const inRun = (g, h) => {
+    const k = g.w + h;
+    if (!runs.has(k)) runs.set(k, runIdx(g.w, h));
+    return runs.get(k).has(g.i);
+  };
+  if (n === 7 && DJ.sub === 'left') t.push(gapTile('Leftover keys', g => LEFT_KEYS.has(g.b), 'key'));
+  if (n === 7 && DJ.sub === 'ends') {
+    t.push(
+      gapTile(
+        'Word endings',
+        g => {
+          const e = endOf(g.w);
+          return e && g.i > g.w.length - e.length;
+        },
+        'letter'
+      )
+    );
+  }
+  if (n === 8) {
+    const r = avgMs(D.reads),
+      f = avgMs(D.fixes);
+    t.push(tile('Reading time', ms(r), 'pause before each word'));
+    t.push(
+      tile('Typo fixes', f == null ? 'None' : ms(f), f == null ? 'no typos to fix' : `per fix, ${D.fixes.length} fixed`)
+    );
+  }
+  if (n === 9 || n === 12) t.push(gapTile(ZONE.name, g => ZONE.f(g.b), 'key'));
+  if (n === 10) t.push(gapTile('Same-finger pairs', g => sfbGroup(g.a, g.b) === DJ.grp, 'pair'));
+  if (n === 12) t.push(gapTile('Same-finger pairs', g => isSfb(g.a, g.b), 'pair'));
+  if ((n === 11 || n === 12) && PINKY11) t.push(gapTile('Pinky keys', g => isPinky(g.b), 'key'));
+  else if (n === 11 || n === 12) t.push(gapTile('One-hand runs', g => inRun(g, n === 11 ? DJ.hand : -1), 'key'));
+  $('ddRes').innerHTML = t.join('');
+  $('ddRes').hidden = false;
+  $('ddAgain').hidden = false;
+  $('ddHint').hidden = true;
+}
+$('ddAgain').onclick = dojoStart;
+$('ddBack').onclick = () => setMode('dojo');
+function dojoKey(e) {
+  if (e.code === 'Escape') {
+    e.preventDefault();
+    setMode('dojo');
+    return;
+  }
+  if (D && D.done) {
+    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+      e.preventDefault();
+      dojoStart();
+    }
+    return;
+  }
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (!e.repeat) dojoSpace();
+    return;
+  }
+  if (e.code === 'Backspace' || e.key === 'Backspace' || e.code === 'CapsLock') {
+    e.preventDefault();
+    dojoBack(e.ctrlKey || e.altKey || e.metaKey);
+    return;
+  }
+  const letter = /^[a-z]$/i.test(e.key || '') ? e.key.toLowerCase() : null;
+  const c = OSLAY || injected(e) ? letter : CODE[e.code];
+  if (c) {
+    e.preventDefault();
+    dojoLetter(c);
+  }
 }
 // ---------- input ----------
 // Caps Lock works as Backspace. It has no other use here, so it's on for every layout.
@@ -13995,6 +14721,12 @@ const INJ_CODE = { ' ': 'Space', Enter: 'Enter', Escape: 'Escape', Backspace: 'B
 addEventListener('keypress', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || !/^[a-z ]$/i.test(e.key || '')) return;
   const m = G.mode;
+  if (m === 'dojodrill') {
+    e.preventDefault();
+    if (e.key === ' ') dojoSpace();
+    else dojoLetter(e.key.toLowerCase());
+    return;
+  }
   if (e.key === ' ') {
     if ((m === 'play' || m === 'drill') && !G.paused && !G.dying && !e.repeat) {
       e.preventDefault();
@@ -14062,6 +14794,17 @@ function onKey(e) {
     }
     return;
   }
+  if (m === 'dojo') {
+    if (e.code === 'Escape') {
+      e.preventDefault();
+      setMode('menu');
+    } else if ((e.code === 'Enter' || e.code === 'NumpadEnter') && !e.target.closest('button')) {
+      e.preventDefault();
+      dojoGo();
+    }
+    return;
+  }
+  if (m === 'dojodrill') return dojoKey(e);
   if (m === 'vlog') {
     if (e.code === 'Escape' || e.code === 'Enter') {
       e.preventDefault();
@@ -14217,9 +14960,10 @@ function frame(now) {
 }
 document.fonts && document.fonts.ready.then(resize);
 if (PUBLIC) {
-  for (const id of ['devnodmg', 'devspeed', 'devcred8', 'devcred12', 'devlaypick', 'devmidiRow', 'devmidiInfo'])
+  for (const id of ['devplayLab', 'devplay', 'devcred8', 'devcred12', 'devlaypick', 'devmidiLab', 'devmidiBox'])
     $(id).remove();
   /* the public build keeps Reset saved progress (press twice) */ $('testTab').textContent = 'Shortcuts';
+  $('devprevLab').textContent = 'Replay';
 }
 resize();
 renderMenu();
