@@ -358,8 +358,7 @@ body.laststand #bar {
   border-radius: 5px;
   pointer-events: none;
   opacity: 0.55;
-  background-image:
-    repeating-linear-gradient(0deg, #ffffff22 0 1px, transparent 1px 3px),
+  background-image: repeating-linear-gradient(0deg, #ffffff22 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, #bfe6ff26 0 2px, transparent 2px 5px),
     linear-gradient(180deg, #bfe6ff1c, #bfe6ff08);
   animation: static 0.1s steps(2) infinite;
@@ -2906,6 +2905,125 @@ h2 {
 #lpVar:empty {
   display: none;
 }
+/* Options: selected keys stay level with their row (the sink made rows look misaligned); a flatter, inset cap marks them instead */
+#options .lvl[aria-pressed='true'],
+#options .btn.tog[aria-pressed='true'] {
+  transform: none;
+  box-shadow:
+    0 2px 0 var(--capEdge),
+    inset 0 2px 5px #0008;
+}
+/* Options tabs and panes: one screen per tab */
+.otabs {
+  align-self: flex-start;
+}
+.otabs .mode {
+  padding: 8px 18px;
+  font-size: 16px;
+}
+.opane {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+.opane[hidden] {
+  display: none;
+}
+#options .pdetail {
+  font-size: 13px;
+  color: #8f96aa;
+  margin: 0;
+}
+/* fingering in Options: presets on one line, then a column per key */
+.fcols {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fpres {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fpres .vl,
+.fcol .fkey {
+  font-family: var(--mono);
+}
+.fpres .vl {
+  font-size: 14px;
+  color: #8f96aa;
+  margin-right: 4px;
+}
+.fcolrow {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.fcol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 116px;
+}
+.fcol .btn {
+  box-sizing: border-box;
+  width: 100%;
+  align-items: center;
+  text-align: center;
+}
+.fcol .fkey {
+  font-size: 20px;
+  padding-bottom: 2px;
+}
+/* virus log page */
+#vlog .lede {
+  max-width: 640px;
+}
+#vlog #vlist {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px 22px;
+}
+/* v337: Options sits at the top of the screen, so a short tab never moves the header and Main menu follows the content */
+#options {
+  align-items: flex-start;
+  padding-top: clamp(24px, 7vh, 72px);
+}
+#options .card {
+  margin-block: 0;
+}
+/* Audio: label, On/Off key, slider, percent on each row */
+.agrid {
+  display: grid;
+  grid-template-columns: auto auto 220px auto;
+  justify-content: start;
+  align-items: center;
+  gap: 14px 16px;
+}
+.agrid .volsl {
+  width: 100%;
+}
+.agrid .btn {
+  width: 72px;
+  min-width: 0;
+  align-items: center;
+}
+/* toggles that change text keep one width */
+.sndbtn,
+.musbtn {
+  min-width: 112px;
+  align-items: center;
+}
+/* Shortcuts: equal columns, so a button's changing text never resizes it */
+.tgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+.tgrid .btn {
+  align-items: center;
+  text-align: center;
+  white-space: nowrap;
+}
 </style>
 
 <div id="app">
@@ -2985,6 +3103,7 @@ h2 {
         <div class="row">
           <button class="btn enter" id="start" data-key="⏎ Enter">Start</button>
           <button class="btn ghost" id="fnOpenBtn" hidden>Fn Keys</button>
+          <button class="btn ghost" id="vlogOpenBtn">Virus log</button>
           <button class="btn ghost" id="optOpenBtn">Options</button>
         </div>
       </div>
@@ -2997,77 +3116,91 @@ h2 {
     <div class="sheet" id="options" hidden>
       <div class="card">
         <h2>Options</h2>
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          <div class="label">Layout</div>
-          <div class="lays" id="lays"></div>
-          <div class="row" id="layvar"></div>
-          <div class="row">
-            <button class="btn ghost sm tog" id="osLayBtn"></button
-            ><button class="btn ghost sm tog" id="spellBtn"></button>
+        <div class="modes otabs" id="otabs" role="tablist">
+          <button class="mode" data-t="kb" role="tab">Keyboard</button
+          ><button class="mode" data-t="audio" role="tab">Audio</button
+          ><button class="mode" data-t="test" role="tab" id="testTab">Testing</button>
+        </div>
+        <div class="opane" data-t="kb">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div class="label">Layout</div>
+            <div class="lays" id="lays"></div>
+            <div class="row" id="layvar"></div>
+            <div class="row">
+              <button class="btn ghost sm tog" id="osLayBtn"></button
+              ><button class="btn ghost sm tog" id="spellBtn"></button>
+            </div>
+            <p class="pdetail" id="layhint"></p>
           </div>
-          <p class="pdetail" id="layhint"></p>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 10px" id="fingerBox">
-          <div class="label">Fingering</div>
-          <div class="fgrid" id="fgrid"></div>
-          <p class="pdetail" id="fhint"></p>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          <div class="label">Audio</div>
-          <div class="row">
-            <button class="btn ghost sm tog sndbtn" id="sndMenu"></button
-            ><button class="btn ghost sm tog musbtn" id="musMenu"></button
-            ><label class="volrow"
-              ><span class="vl">Music</span
-              ><input
-                type="range"
-                class="volsl musl"
-                id="musMenuVol"
-                min="0"
-                max="100"
-                step="1"
-                aria-label="Music volume" /><span class="volnum"></span></label
-            ><label class="volrow"
-              ><span class="vl">Effects</span
-              ><input
-                type="range"
-                class="volsl sfxl"
-                id="volMenu"
-                min="0"
-                max="100"
-                step="1"
-                aria-label="Effects volume" /><span class="volnum"></span
-            ></label>
+          <div style="display: flex; flex-direction: column; gap: 10px" id="fingerBox">
+            <div class="label">Fingering</div>
+            <div class="fcols" id="fgrid"></div>
+            <p class="pdetail" id="fhint"></p>
           </div>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          <div class="label">Viruses</div>
-          <div class="vlist" id="vlist"></div>
+        <div class="opane" data-t="audio" hidden>
+          <div class="agrid">
+            <div class="label">Music</div>
+            <button class="btn ghost sm tog musbtn" id="musMenu" data-short="1"></button
+            ><input
+              type="range"
+              class="volsl musl"
+              id="musMenuVol"
+              min="0"
+              max="100"
+              step="1"
+              aria-label="Music volume"
+            /><span class="volnum"></span>
+            <div class="label">Effects</div>
+            <button class="btn ghost sm tog sndbtn" id="sndMenu" data-short="1"></button
+            ><input
+              type="range"
+              class="volsl sfxl"
+              id="volMenu"
+              min="0"
+              max="100"
+              step="1"
+              aria-label="Effects volume"
+            /><span class="volnum"></span>
+          </div>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          <div class="label" id="testLabel">Testing</div>
-          <div class="row">
-            <button class="btn ghost sm" id="devunlock">Unlock everything</button>
-            <button class="btn ghost sm tog" id="devnodmg"></button>
-            <button class="btn ghost sm tog" id="devspeed"></button>
-            <button class="btn ghost sm" id="devcred8">Credits L8</button>
-            <button class="btn ghost sm" id="devcred12">Credits L12</button>
-            <button class="btn ghost sm" id="devlaypick">Layout screen</button>
-            <button class="btn ghost sm" id="devpro">Prologue</button>
-            <button class="btn ghost sm" id="devreset" style="color: #ef6461">Reset saved progress</button>
+        <div class="opane" data-t="test" hidden>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div class="tgrid">
+              <button class="btn ghost sm" id="devunlock">Unlock everything</button>
+              <button class="btn ghost sm tog" id="devnodmg"></button>
+              <button class="btn ghost sm tog" id="devspeed"></button>
+              <button class="btn ghost sm" id="devcred8">Credits L8</button>
+              <button class="btn ghost sm" id="devcred12">Credits L12</button>
+              <button class="btn ghost sm" id="devlaypick">Layout screen</button>
+              <button class="btn ghost sm" id="devpro">Prologue</button>
+              <button class="btn ghost sm" id="devreset" style="color: #ef6461">Reset saved progress</button>
+            </div>
+            <div class="row" id="devmidiRow">
+              <button class="btn ghost sm" id="devmidi">Play a MIDI file</button>
+              <select class="btn ghost sm" id="devmidiSong" aria-label="Song sound for the MIDI file"></select>
+              <button class="btn ghost sm" id="devmidiStop">Stop</button>
+              <input type="file" id="devmidiFile" accept=".mid,.midi,audio/midi" hidden />
+            </div>
+            <p class="pdetail" id="devmidiInfo">
+              Hear an edited MIDI file with the game's own instruments. Leave the song on Auto to pick it from the file
+              name.
+            </p>
           </div>
-          <div class="row" id="devmidiRow">
-            <button class="btn ghost sm" id="devmidi">Play a MIDI file</button>
-            <select class="btn ghost sm" id="devmidiSong" aria-label="Song sound for the MIDI file"></select>
-            <button class="btn ghost sm" id="devmidiStop">Stop</button>
-            <input type="file" id="devmidiFile" accept=".mid,.midi,audio/midi" hidden />
-          </div>
-          <p class="pdetail" id="devmidiInfo">
-            Hear an edited MIDI file with the game's own instruments. Leave the song on Auto to pick it from the file
-            name.
-          </p>
         </div>
         <div class="row"><button class="btn" id="optBack" data-key="Esc">Main menu</button></div>
+      </div>
+    </div>
+
+    <div class="sheet" id="vlog" hidden>
+      <div class="card">
+        <h2>Virus log</h2>
+        <p class="lede">
+          Orange words carry a virus. Type one and you set it off, for better or worse. Each one is logged here once
+          you've seen it.
+        </p>
+        <div class="vlist" id="vlist"></div>
+        <div class="row"><button class="btn" id="vlogBack" data-key="Esc">Main menu</button></div>
       </div>
     </div>
 
@@ -11119,7 +11252,14 @@ function render() {
     if (G.lvl.dawn > 0.003 && !G.lvl.ascent) drawDawn(G.lvl.dawn);
   }
   if (G.lvl && G.lvl.cfg.n <= 6 && !G.lvl.cfg.fn && showField) drawKeyboard(G.lvl.cfg);
-  if (G.mode === 'menu' || G.mode === 'fnmenu' || G.mode === 'options' || G.mode === 'prologue' || G.mode === 'laypick')
+  if (
+    G.mode === 'menu' ||
+    G.mode === 'fnmenu' ||
+    G.mode === 'options' ||
+    G.mode === 'vlog' ||
+    G.mode === 'prologue' ||
+    G.mode === 'laypick'
+  )
     drawBackdrop(1); // the city at dusk behind the menus
   if (G.mode === 'pre' && G.lvl) drawBackdrop(G.lvl.cfg.n);
   if (!showField && G.mode !== 'clear' && G.mode !== 'dead') {
@@ -13218,11 +13358,52 @@ function fingClick(e, lay) {
   store.set('fingers', f);
   return true;
 }
+function fingCols(lay, f) {
+  // Options: presets on top, then one column per key with its finger choices stacked under the letter
+  const pre = Object.entries(FING_PRESET)
+    .map(
+      ([n, p]) =>
+        `<button class="btn ghost sm tog" data-fp="${n}" aria-pressed="${p.every((v, i) => f[i] === v)}">${n}</button>`
+    )
+    .join('');
+  const cols = FING_SLOTS.map(([ci, ok], i) => {
+    const c = fingLetter(lay, ci);
+    if (!c) return '';
+    const lab = v => (v === 3 && ci !== 4 ? 'Index' : FING_LABEL[v]);
+    return `<div class="fcol"><span class="fkey">${c}</span>${ok
+      .map(
+        v =>
+          `<button class="btn ghost sm tog" data-fs="${i}" data-fv="${v}" aria-pressed="${f[i] === v}">${lab(v)}</button>`
+      )
+      .join('')}</div>`;
+  }).join('');
+  return `<div class="fpres"><span class="vl">Presets</span>${pre}</div><div class="fcolrow">${cols}</div>`;
+}
+// Options tabs: Keyboard, Audio, Testing (Shortcuts on the public build)
+let OTAB = 'kb';
+try {
+  OTAB = sessionStorage.getItem('kfOptTab') || 'kb';
+} catch (e) {}
+function renderOptTabs() {
+  for (const b of document.querySelectorAll('#otabs .mode')) b.setAttribute('aria-pressed', b.dataset.t === OTAB);
+  for (const p of document.querySelectorAll('#options .opane')) p.hidden = p.dataset.t !== OTAB;
+}
+$('otabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-t]');
+  if (!b) return;
+  OTAB = b.dataset.t;
+  try {
+    sessionStorage.setItem('kfOptTab', OTAB);
+  } catch (e) {}
+  renderOptTabs();
+});
+$('vlogOpenBtn').onclick = () => setMode('vlog');
+$('vlogBack').onclick = () => setMode('menu');
 const FING_HINT = 'The finger you really use for each key. Words picked to be awkward for your hands follow it.';
 function renderFingering() {
   $('fingerBox').hidden = !fingAsk(LAYOUT_ID);
   const f = fingGet(LAYOUT_ID);
-  $('fgrid').innerHTML = fingGrid(LAYOUT_ID, f);
+  $('fgrid').innerHTML = fingCols(LAYOUT_ID, f);
   $('fhint').textContent =
     FING_HINT + (JSON.stringify(f) !== FING_LOADED ? ' Changes take effect when you close Options.' : '');
 }
@@ -13442,11 +13623,11 @@ $('clGo').onclick = nextFromClear;
 $('deadGo').onclick = toMenu;
 function sndLabel() {
   for (const el of document.querySelectorAll('.sndbtn')) {
-    el.textContent = SFX.on ? 'Sound: on' : 'Sound: off';
+    el.textContent = el.dataset.short ? (SFX.on ? 'On' : 'Off') : SFX.on ? 'Sound: on' : 'Sound: off';
     el.setAttribute('aria-pressed', SFX.on);
   }
   for (const el of document.querySelectorAll('.musbtn')) {
-    el.textContent = SFX.musicOn ? 'Music: on' : 'Music: off';
+    el.textContent = el.dataset.short ? (SFX.musicOn ? 'On' : 'Off') : SFX.musicOn ? 'Music: on' : 'Music: off';
     el.setAttribute('aria-pressed', SFX.musicOn);
   }
 }
@@ -13697,7 +13878,7 @@ function fadeTo(fn, out = 0.3, hold = 0, inn = 0.45, col = '#000') {
 }
 function setMode(m) {
   {
-    const nb = m === 'menu' || m === 'fnmenu' || m === 'options' || m === 'prologue' || m === 'laypick';
+    const nb = m === 'menu' || m === 'fnmenu' || m === 'options' || m === 'vlog' || m === 'prologue' || m === 'laypick';
     if (document.body.classList.contains('nobar') !== nb) {
       document.body.classList.toggle('nobar', nb);
       if (typeof resize === 'function') resize();
@@ -13717,11 +13898,13 @@ function setMode(m) {
   $('laypick').hidden = m !== 'laypick';
   $('fnmenu').hidden = m !== 'fnmenu';
   $('options').hidden = m !== 'options';
+  $('vlog').hidden = m !== 'vlog';
   $('pre').hidden = m !== 'pre';
   $('clear').hidden = m !== 'clear';
   $('dead').hidden = m !== 'dead';
   if (m !== 'play' && m !== 'drill') G.paused = false;
-  if (m === 'options') renderVirusList();
+  if (m === 'vlog') renderVirusList();
+  if (m === 'options') renderOptTabs();
   $('pause').hidden = !G.paused;
   if (m !== prev) {
     const el = $(m);
@@ -13804,6 +13987,13 @@ function onKey(e) {
       e.preventDefault();
       SFX.music(null); // stops a MIDI preview
       renderMenu();
+      setMode('menu');
+    }
+    return;
+  }
+  if (m === 'vlog') {
+    if (e.code === 'Escape' || e.code === 'Enter') {
+      e.preventDefault();
       setMode('menu');
     }
     return;
@@ -13946,7 +14136,7 @@ document.fonts && document.fonts.ready.then(resize);
 if (PUBLIC) {
   for (const id of ['devnodmg', 'devspeed', 'devcred8', 'devcred12', 'devlaypick', 'devmidiRow', 'devmidiInfo'])
     $(id).remove();
-  /* the public build keeps Reset saved progress (press twice) */ $('testLabel').textContent = 'Shortcuts';
+  /* the public build keeps Reset saved progress (press twice) */ $('testTab').textContent = 'Shortcuts';
 }
 resize();
 renderMenu();
