@@ -3369,6 +3369,7 @@ h2 {
               <button class="btn ghost sm" id="devlaypick">Layout screen</button>
               <button class="btn ghost sm" id="devcred8">Credits L8</button>
               <button class="btn ghost sm" id="devcred12">Credits L12</button>
+              <button class="btn ghost sm" id="devstand">Last Stand</button>
             </div>
             <div class="label" id="devmidiLab">Music</div>
             <div class="mcol" id="devmidiBox">
@@ -8027,10 +8028,69 @@ const SFX = (() => {
       for (let i = 0; i < 3; i++)
         tone(110 - i * 18, 0.3, { vol: 0.35, to: 60 - i * 8, when: t + sd * (13 + i), out: o });
   }
+  function standDrone(full, el = 0) {
+    // low root and octave, a fifth and a high octave join in; a lowpass opens and it swells; a noise riser in the last 1.8 s
+    if (!ac || !musOn || !mus.track) return;
+    const dur = full - el;
+    if (dur < 0.1) return;
+    const T = mus.track,
+      now = ac.currentTime,
+      end = now + dur,
+      p0 = el / full,
+      o = gate();
+    const lp = ac.createBiquadFilter(),
+      g = ac.createGain();
+    lp.type = 'lowpass';
+    lp.Q.value = 3;
+    lp.frequency.setValueAtTime(150 * Math.pow(12, p0 * p0), now);
+    lp.frequency.exponentialRampToValueAtTime(1800, end);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.7 + 0.5 * p0, now + (el ? 0.25 : 0.8));
+    g.gain.linearRampToValueAtTime(1.25, end - 0.05);
+    g.gain.linearRampToValueAtTime(0.0001, end + 0.3);
+    lp.connect(g).connect(o);
+    for (const [n, type, vol, at, det] of [
+      [T.root - 24, 'sawtooth', 0.07, 0, 0],
+      [T.root - 24, 'sawtooth', 0.05, 0, 7],
+      [T.root - 12, 'sine', 0.09, 0, 0],
+      [T.root - 17, 'sawtooth', 0.045, 0.35, 0],
+      [T.root, 'triangle', 0.03, 0.6, 0],
+    ]) {
+      const t = now + Math.max(0, at * full - el),
+        os = ac.createOscillator(),
+        vg = ac.createGain();
+      os.type = type;
+      os.frequency.value = hz(n);
+      os.detune.value = det;
+      vg.gain.setValueAtTime(0.0001, t);
+      vg.gain.exponentialRampToValueAtTime(vol, t + 1.2);
+      os.connect(vg).connect(lp);
+      os.start(t);
+      os.stop(end + 0.4);
+    }
+    const rt = Math.max(now, end - 1.8);
+    if (end - rt > 0.2) {
+      const src = ac.createBufferSource(),
+        bf = ac.createBiquadFilter(),
+        ng = ac.createGain();
+      src.buffer = noiseBuf;
+      src.loop = true;
+      bf.type = 'bandpass';
+      bf.Q.value = 1.2;
+      bf.frequency.setValueAtTime(400, rt);
+      bf.frequency.exponentialRampToValueAtTime(5000, end);
+      ng.gain.setValueAtTime(0.0001, rt);
+      ng.gain.exponentialRampToValueAtTime(0.07, end - 0.02);
+      ng.gain.linearRampToValueAtTime(0.0001, end + 0.05);
+      src.connect(bf).connect(ng).connect(o);
+      src.start(rt);
+      src.stop(end + 0.1);
+    }
+  }
   setInterval(() => {
     if (!mus.track || mus.paused || mus.frozen || !ac || !musOn) return;
     if (mus.next < ac.currentTime) mus.next = ac.currentTime + 0.02; // tab was asleep: don't burst-play the backlog
-    while (!mus.solo && mus.next < ac.currentTime + 0.12) {
+    while (!mus.solo && !mus.hold && mus.next < ac.currentTime + 0.12) {
       if (mus.phaseNext != null && mus.step % 16 === 0) {
         mus.phase = mus.phaseNext;
         mus.phaseNext = null;
@@ -8067,6 +8127,7 @@ const SFX = (() => {
       mus.phaseNext = null;
       delete mus.altNext;
       mus.solo = false;
+      mus.hold = false;
       mus.kicks = [];
       mus.events = [];
       mus.stand = false;
@@ -8124,6 +8185,7 @@ const SFX = (() => {
       mus.midi = null;
       mus.alt = false;
       mus.solo = false;
+      mus.hold = false;
       mus.kicks = [];
       mus.events = [];
       mus.stand = false;
@@ -8188,20 +8250,22 @@ const SFX = (() => {
     bossPhase(k) {
       if (mus.track && mus.track.night12 && k !== mus.phase) mus.phaseNext = k;
     },
-    lastStand() {
+    // Last Stand intro: the song cuts, a drone builds in the dark over the heartbeat, and the song restarts on the gong (standHit)
+    lastStand(full) {
       if (!ac || !mus.track) return;
-      const T = mus.track,
-        now = ac.currentTime,
-        bar = (16 * 60) / (T.bpm * mus.rate) / 4;
+      cutNotes();
       mus.stand = true;
+      mus.hold = true;
       mus.step = 0;
-      mus.next = now + bar;
-      mus.hnext = now + bar;
       mus.events = [];
-      if (musOn) {
-        tone(hz(T.root - 24), bar + 0.3, { type: 'sawtooth', vol: 0.07, attack: 0.3, out: musBus });
-        tone(hz(T.root - 12), bar + 0.3, { type: 'sine', vol: 0.08, attack: 0.5, out: musBus });
-      }
+      mus.hnext = ac.currentTime + 1.2; // the heart is the first thing you hear
+      standDrone(full, 0);
+    },
+    standDrone,
+    standHit() {
+      mus.hold = false;
+      mus.step = 0;
+      if (ac) mus.next = ac.currentTime + 0.03;
     },
     standHeart(f) {
       mus.heart = f;
@@ -11099,16 +11163,28 @@ function update(dt) {
     if (ph !== G.lvl.phase && !G.words.length) {
       G.lvl.phase = ph;
       G.lvl.correct = L.phases.slice(0, ph).reduce((t, p) => t + p.n, 0);
-      if (ph === L.phases.length - 1) G.lvl.surgeT = G.t;
       G.lvl.lullUntil = G.t + 1.5;
       G.lvl.greenNext = true;
       G.lvl.spawnT = 0;
-      banner(BOSS_TAUNT[ph], 4);
       SFX.clearCall();
-      if (ph === L.phases.length - 1) SFX.lastStand();
-      else SFX.bossPhase(ph);
+      if (ph === L.phases.length - 1) {
+        // Last Stand: the long dark intro (standIntro in 14-backdrop), words only after the music hits
+        G.lvl.surgeT = G.t;
+        G.lvl.standIntro = { t0: G.t, ghosts: standGhosts() };
+        G.lvl.lullUntil = G.t + STAND_T.hit + 0.5;
+        G.lvl.spawnT = 0.01; // the first word waits for the lull too
+        SFX.lastStand(STAND_T.hit);
+      } else {
+        banner(BOSS_TAUNT[ph], 4);
+        SFX.bossPhase(ph);
+      }
     }
   }
+  const SI = G.lvl.standIntro;
+  if (SI && !SI.hit && G.t - SI.t0 >= STAND_T.hit) {
+    SI.hit = true;
+    SFX.standHit();
+  } // the song comes back in on the gong
   if (!drill && L.phases && G.lvl.phase === L.phases.length - 1 && !G.lvl.ascent)
     SFX.standHeart(Math.max(0, L.req - G.lvl.correct) / L.phases[L.phases.length - 1].n);
   if (!drill && inStand()) {
@@ -11545,6 +11621,7 @@ function render() {
     drawCountdown();
     drawCharStatus();
     drawBossBar();
+    if (!G.paused) drawStandIntro();
   } // boss bar sits behind the falling words
   // floor line
   ctx.fillStyle = '#ef646122';
@@ -12522,6 +12599,84 @@ function drawCharStatus() {
   }
   ctx.restore();
 }
+// Last Stand intro: the sky goes black, the drone builds over a heartbeat, the empty boss bar charges red,
+// a big 40 fades in, the taunt types itself out, then the song comes back on the gong and the words start.
+// Your own grudge words drift up faintly in the dark. Times in seconds from the start of the phase. No shaking.
+const STAND_T = { charge0: 0.6, charge1: 3.0, forty0: 2.8, forty1: 4.8, type0: 5.0, cps: 20, hit: 7.8, out: 1.2 };
+function standGhosts() {
+  const d = Object.keys((G.run && G.run.grudge) || {});
+  for (let i = d.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [d[i], d[j]] = [d[j], d[i]];
+  }
+  return d.slice(0, 10).map((w, i) => ({
+    w,
+    x: (i % 2 ? 0.7 : 0.04) + 0.26 * Math.random(), // left and right of the middle, so the 40 and the taunt stay clear
+    y: 0.6 + 0.45 * Math.random(),
+    at: 1 + i * 0.4 + Math.random() * 0.3, // they surface one by one
+    s: 0.035 + Math.random() * 0.03,
+    z: 0.7 + Math.random() * 0.45,
+  }));
+}
+const standE = (a, b, e) => Math.max(0, Math.min(1, (e - a) / (b - a)));
+function standCharge() {
+  // 0..1 fill of the red layer while the intro runs; null once the song is back
+  const SI = G.lvl && G.lvl.standIntro;
+  if (!SI || SI.hit) return null;
+  const k = standE(STAND_T.charge0, STAND_T.charge1, G.t - SI.t0);
+  return k * k * (3 - 2 * k);
+}
+function standFortyAlpha(rest) {
+  // the big 40: fades in slowly in the dark, then settles back to its faint resting look once the words come
+  const SI = G.lvl && G.lvl.standIntro;
+  if (!SI) return rest;
+  const e = G.t - SI.t0;
+  if (e < STAND_T.hit) return 0.42 * standE(STAND_T.forty0, STAND_T.forty1, e);
+  const k = standE(STAND_T.hit, STAND_T.hit + STAND_T.out, e);
+  return 0.42 + (rest - 0.42) * k;
+}
+function drawStandIntro() {
+  const SI = G.lvl && G.lvl.standIntro;
+  if (!SI || G.lvl.ascent) return;
+  const e = G.t - SI.t0,
+    after = standE(STAND_T.hit, STAND_T.hit + STAND_T.out, e);
+  if (after >= 1) return;
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // grudge ghosts, faint red, rising slowly; gone quickly once the song hits
+  const gone = standE(STAND_T.hit, STAND_T.hit + 0.6, e);
+  ctx.fillStyle = '#f0a8a4';
+  for (const g of SI.ghosts) {
+    const k = e - g.at;
+    if (k <= 0) continue;
+    const y = (g.y - (reduced ? 0 : k * g.s)) * H;
+    ctx.globalAlpha = 0.13 * g.z * Math.min(1, k / 1.2) * (1 - gone);
+    ctx.font = `500 ${Math.round(FS * 0.85 * g.z)}px 'IBM Plex Mono',ui-monospace,monospace`;
+    ctx.fillText(g.w, FX0 + g.x * FW, y);
+  }
+  // the taunt types itself out where the phase banners sit, with a caret while it types
+  const txt = BOSS_TAUNT[3],
+    n = Math.max(0, Math.min(txt.length, Math.floor((e - STAND_T.type0) * STAND_T.cps)));
+  if (e >= STAND_T.type0) {
+    ctx.font = `800 ${Math.round(FS * 1.6)}px 'Archivo',system-ui,sans-serif`;
+    const full = ctx.measureText(txt).width,
+      x0 = W / 2 - full / 2,
+      y = H * 0.25; // above the big 40
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 1 - after;
+    ctx.fillStyle = '#ebe6d6';
+    const part = txt.slice(0, n);
+    ctx.fillText(part, x0, y);
+    const typing = n < txt.length,
+      blink = Math.floor(G.t * 2.4) % 2 === 0;
+    if ((typing || (e < STAND_T.hit && blink)) && !after) {
+      ctx.globalAlpha = typing ? 0.8 : 0.5;
+      ctx.fillRect(x0 + ctx.measureText(part).width + 3, y - FS * 0.75, Math.max(2, FS * 0.12), FS * 1.5);
+    }
+  }
+  ctx.restore();
+}
 // boss health bar: one full layer per phase, drained word by word; levels 4 and 8 end on a thin red layer for the final word
 const BOSS_COLS = {
   4: ['#52d98a', '#f4c430'],
@@ -12576,11 +12731,15 @@ function drawBossBar() {
   if (!L.phases && !L.mini && !L.endless) return;
   const S = bossBarState();
   if (!S) return;
+  const L12 = !!L.phases,
+    chg = L12 ? standCharge() : null;
+  if (L12 && S.idx === S.layers - 1 && chg != null) S.frac = chg; // Last Stand intro: the red layer charges up from empty
+  if (L12) S.layers--; // night 12 looks like three layers: yellow peels off to nothing, then red comes out of the dark
   const cols = BOSS_COLS[L.n] || BOSS_COLS[12],
     colOf = i => (L.endless ? endCol(i) : i >= cols.length ? '#ef6461' : cols[i]);
   const total = S.layers - 1 - S.idx + S.frac;
   if (G.lvl.bbIdx !== S.idx) {
-    if (G.lvl.bbIdx != null) G.lvl.bbCrack = G.t;
+    if (G.lvl.bbIdx != null) G.lvl.bbCrack = S.idx >= S.layers ? null : G.t; // no crack into the dark; it flashes when the red is full
     G.lvl.bbIdx = S.idx;
     G.lvl.bbTrail = total;
   }
@@ -12589,6 +12748,8 @@ function drawBossBar() {
     G.lvl.bbHold = G.t + 0.35;
     G.lvl.bbLast = total;
   }
+  if (L12 && G.lvl.standIntro && G.t - G.lvl.standIntro.t0 >= STAND_T.charge1 && G.lvl.bbCrack == null)
+    G.lvl.bbCrack = G.lvl.standIntro.t0 + STAND_T.charge1;
   if (G.t > G.lvl.bbHold) G.lvl.bbTrail = Math.max(total, G.lvl.bbTrail - (1 / 60) * 0.6);
   const left = S.layers - 1 - S.idx,
     trailF = Math.min(1, Math.max(S.frac, G.lvl.bbTrail - left));
@@ -12686,7 +12847,7 @@ function drawCountdown() {
   ctx.fillStyle = LCOL[L.n - 1];
   if (left > 0) {
     // v338 (player feedback): half the old size and fainter, so it stays behind the words instead of shouting
-    ctx.globalAlpha = last ? 0.08 : 0.15;
+    ctx.globalAlpha = last ? standFortyAlpha(0.08) : 0.15;
     if (last) ctx.fillStyle = '#ebe6d6';
     ctx.font = `800 ${Math.round(H * 0.2 * pop)}px 'Archivo',system-ui,sans-serif`;
     ctx.fillText(String(left), W / 2, H * 0.45);
@@ -14058,6 +14219,19 @@ const devCredits = n => {
 }; // preview with an empty run's stats
 $('devcred8').onclick = () => devCredits(8);
 $('devcred12').onclick = () => devCredits(12);
+$('devstand').onclick = () => {
+  // jump straight to the Last Stand intro: a practice night 12 with phases 1-3 marked done and some made-up grudge words
+  const pr = G.practice;
+  G.practice = true;
+  startLevel(12, true);
+  G.practice = pr;
+  beginPlay();
+  G.fx = G.fx.filter(f => f.k !== 'banner');
+  const L = G.lvl.cfg;
+  G.lvl.phase = L.phases.length - 2;
+  G.lvl.correct = L.phases.slice(0, -1).reduce((t, p) => t + p.n, 0);
+  for (const w of WORDS.slice(400, 460)) if (w.length >= 5) G.run.grudge[w] = 1;
+};
 $('devlaypick').onclick = () => {
   // preview the first-launch layout pick; nothing is reset
   LP.k = LAYOUT_ID;
@@ -14267,6 +14441,8 @@ function setPause(p) {
   G.paused = p;
   $('pause').hidden = !p;
   SFX.pauseMusic(p);
+  const SI = !p && G.lvl && G.lvl.standIntro;
+  if (SI && !SI.hit) SFX.standDrone(STAND_T.hit, G.t - SI.t0); // the pause cut the Last Stand drone: pick it up where it was
 }
 // ---------- Dojo: technique lessons (v339) ----------
 // One lesson per night from 7 to 12. Each is a short drill of a few lines of words, then WPM, accuracy and the
@@ -14978,7 +15154,16 @@ function frame(now) {
 }
 document.fonts && document.fonts.ready.then(resize);
 if (PUBLIC) {
-  for (const id of ['devplayLab', 'devplay', 'devcred8', 'devcred12', 'devlaypick', 'devmidiLab', 'devmidiBox'])
+  for (const id of [
+    'devplayLab',
+    'devplay',
+    'devcred8',
+    'devcred12',
+    'devstand',
+    'devlaypick',
+    'devmidiLab',
+    'devmidiBox',
+  ])
     $(id).remove();
   /* the public build keeps Reset saved progress (press twice) */ $('testTab').textContent = 'Shortcuts';
   $('devprevLab').textContent = 'Replay';
